@@ -141,7 +141,8 @@ hr { border-color: rgba(255,215,0,0.15) !important; }
 
 # ─── HELPERS ─────────────────────────────────────────────────────────────────
 def fmt_inr(n, decimals=0):
-    """Format number as Indian Rupee / generic currency with ₹ or $ symbol."""
+    """Format number in Indian system with ₹ symbol."""
+    n = float(n)
     if abs(n) >= 1e7:
         return f"₹{n/1e7:.2f} Cr"
     elif abs(n) >= 1e5:
@@ -150,6 +151,8 @@ def fmt_inr(n, decimals=0):
         return f"₹{n:,.{decimals}f}"
 
 def fmt_usd(n):
+    """Format number in US system with $ symbol."""
+    n = float(n)
     if abs(n) >= 1e6:
         return f"${n/1e6:.2f}M"
     elif abs(n) >= 1e3:
@@ -234,14 +237,42 @@ with st.sidebar:
     </div>""", unsafe_allow_html=True)
 
     st.markdown("## 💰 Income & Savings")
-    currency     = st.selectbox("Currency", ["₹ INR (Lakhs)", "$ USD"])
-    curr_sym     = "₹" if "INR" in currency else "$"
-    is_inr       = "INR" in currency
+    currency  = st.selectbox("Currency", ["₹ INR (Lakhs/Crores)", "$ USD (Thousands)"])
+    curr_sym  = "₹" if "INR" in currency else "$"
+    is_inr    = "INR" in currency
 
-    curr_income  = st.number_input(f"Annual Income ({curr_sym})", 100000, 100000000, 1500000 if is_inr else 75000, 50000)
+    # All min/max/default/step values scale with currency to prevent StreamlitValueBelowMinError
+    # INR scale: Lakhs/Crores.   USD scale: Thousands.
+    if is_inr:
+        INC  = dict(mn=100_000,    mx=100_000_000, df=1_500_000, st=50_000)
+        SAV  = dict(mn=0,          mx=500_000_000, df=500_000,   st=10_000)
+        SPC  = dict(mn=50_000,     mx=50_000_000,  df=1_000_000, st=25_000)
+        PEN  = dict(mn=0,          mx=5_000_000,   df=120_000,   st=10_000)
+        OTH  = dict(mn=0,          mx=5_000_000,   df=0,         st=10_000)
+    else:
+        INC  = dict(mn=10_000,     mx=2_000_000,   df=75_000,    st=1_000)
+        SAV  = dict(mn=0,          mx=5_000_000,   df=25_000,    st=500)
+        SPC  = dict(mn=5_000,      mx=1_000_000,   df=50_000,    st=500)
+        PEN  = dict(mn=0,          mx=200_000,     df=18_000,    st=500)
+        OTH  = dict(mn=0,          mx=200_000,     df=0,         st=500)
+
+    curr_income  = st.number_input(f"Annual Income ({curr_sym})",
+                                   INC["mn"], INC["mx"], INC["df"], INC["st"])
     income_growth= st.slider("Income Growth Rate (%)", 0.0, 15.0, 7.0 if is_inr else 3.0, 0.5) / 100
     savings_rate = st.slider("Savings Rate (% of Income)", 1.0, 50.0, 20.0 if is_inr else 15.0, 0.5) / 100
-    curr_savings = st.number_input(f"Current Savings ({curr_sym})", 0, 500000000, 500000 if is_inr else 25000, 10000)
+    curr_savings = st.number_input(f"Current Savings ({curr_sym})",
+                                   SAV["mn"], SAV["mx"], SAV["df"], SAV["st"])
+
+    # Live savings preview
+    _ann_prev = curr_income * savings_rate
+    st.markdown(
+        f'<div style="background:rgba(0,51,102,0.45);border:1px solid rgba(255,215,0,0.18);'
+        f'border-radius:6px;padding:6px 12px;margin-bottom:8px;font-size:0.74rem;color:#ADD8E6;">'
+        f'💾 Annual savings: <b style="color:#FFD700;">{curr_sym}{_ann_prev:,.0f}</b>'
+        f'&nbsp;|&nbsp;Monthly: <b style="color:#FFD700;">{curr_sym}{_ann_prev/12:,.0f}</b>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
 
     st.markdown("## 📈 Returns & Inflation")
     pre_ret_return  = st.slider("Pre-Retirement Return (%)", 1.0, 20.0, 12.0 if is_inr else 8.0, 0.5) / 100
@@ -250,13 +281,13 @@ with st.sidebar:
     tax_rate        = st.slider("Tax Rate on Withdrawals (%)", 0.0, 40.0, 20.0 if is_inr else 15.0, 1.0) / 100
 
     st.markdown("## 🏠 Retirement Spending")
-    desired_spending = st.number_input(f"Desired Annual Spending Today ({curr_sym})", 
-                                        100000, 50000000, 1000000 if is_inr else 50000, 50000)
+    desired_spending = st.number_input(f"Desired Annual Spending Today ({curr_sym})",
+                                       SPC["mn"], SPC["mx"], SPC["df"], SPC["st"])
     replacement_ratio= st.slider("Income Replacement Ratio (%)", 40.0, 100.0, 75.0, 5.0) / 100
-    pension_income   = st.number_input(f"Annual Pension / Social Security ({curr_sym})", 
-                                        0, 5000000, 120000 if is_inr else 18000, 10000)
-    other_income     = st.number_input(f"Other Retirement Income ({curr_sym})", 
-                                        0, 5000000, 0, 10000)
+    pension_income   = st.number_input(f"Annual Pension / Social Security ({curr_sym})",
+                                       PEN["mn"], PEN["mx"], PEN["df"], PEN["st"])
+    other_income     = st.number_input(f"Other Retirement Income ({curr_sym})",
+                                       OTH["mn"], OTH["mx"], OTH["df"], OTH["st"])
 
     st.markdown("## 🎲 Monte Carlo")
     mc_sims      = st.slider("Simulations", 500, 5000, 1000, 500)
@@ -868,7 +899,11 @@ with tab7:
     with tvm1:
         c1,c2 = st.columns(2)
         with c1:
-            pv_in = st.number_input("Present Value (PV)", 1000, 10000000, 100000, 10000, key="fv_pv")
+            pv_in = st.number_input(f"Present Value (PV) ({curr_sym})",
+                                    1000 if is_inr else 100,
+                                    10_000_000 if is_inr else 500_000,
+                                    100_000 if is_inr else 10_000,
+                                    10_000 if is_inr else 1_000, key="fv_pv")
             r_in  = st.slider("Annual Rate (%)", 1.0, 20.0, 8.0, 0.5, key="fv_r")
             n_in  = st.slider("Years", 1, 50, 30, 1, key="fv_n")
             cpd   = st.selectbox("Compounding", [1,12,365], index=1, format_func=lambda x: {1:"Annual",12:"Monthly",365:"Daily"}[x], key="fv_cpd")
@@ -893,7 +928,11 @@ with tab7:
     with tvm2:
         c1,c2 = st.columns(2)
         with c1:
-            fv_in2 = st.number_input("Future Amount Needed", 100000, 100000000, 10000000, 500000, key="pv_fv")
+            fv_in2 = st.number_input(f"Future Amount Needed ({curr_sym})",
+                                     100_000 if is_inr else 10_000,
+                                     100_000_000 if is_inr else 5_000_000,
+                                     10_000_000 if is_inr else 500_000,
+                                     500_000 if is_inr else 10_000, key="pv_fv")
             r_in2  = st.slider("Discount Rate (%)", 1.0, 20.0, 7.0, 0.5, key="pv_r")
             n_in2  = st.slider("Years Until Needed", 1, 50, 25, 1, key="pv_n")
         pv_val = fv_in2 / (1+r_in2/100)**n_in2
@@ -911,7 +950,11 @@ with tab7:
     with tvm3:
         c1,c2 = st.columns(2)
         with c1:
-            target_fv = st.number_input("Target Future Value", 100000, 100000000, 10000000, 500000, key="pmt_fv")
+            target_fv = st.number_input(f"Target Future Value ({curr_sym})",
+                                        100_000 if is_inr else 10_000,
+                                        100_000_000 if is_inr else 5_000_000,
+                                        10_000_000 if is_inr else 500_000,
+                                        500_000 if is_inr else 10_000, key="pmt_fv")
             r_pmt     = st.slider("Annual Rate (%)", 1.0, 20.0, 10.0, 0.5, key="pmt_r")
             n_pmt     = st.slider("Years to Save", 1, 50, 30, 1, key="pmt_n")
             freq_pmt  = st.selectbox("Payment Frequency", [12,1,4,26], index=0,
@@ -934,9 +977,21 @@ with tab7:
     with tvm4:
         c1,c2 = st.columns(2)
         with c1:
-            mo_sav  = st.number_input("Monthly Savings", 1000, 1000000, 25000 if is_inr else 1000, 1000, key="np_ms")
-            curr_sv = st.number_input("Current Savings",  0, 50000000, 500000 if is_inr else 50000, 10000, key="np_cs")
-            goal_am = st.number_input("Target Amount",   100000, 500000000, 10000000 if is_inr else 1000000, 100000, key="np_ga")
+            mo_sav  = st.number_input(f"Monthly Savings ({curr_sym})",
+                                      1_000 if is_inr else 100,
+                                      1_000_000 if is_inr else 50_000,
+                                      25_000 if is_inr else 1_000,
+                                      1_000 if is_inr else 100, key="np_ms")
+            curr_sv = st.number_input(f"Current Savings ({curr_sym})",
+                                      0,
+                                      50_000_000 if is_inr else 2_000_000,
+                                      500_000 if is_inr else 50_000,
+                                      10_000 if is_inr else 1_000, key="np_cs")
+            goal_am = st.number_input(f"Target Amount ({curr_sym})",
+                                      100_000 if is_inr else 10_000,
+                                      500_000_000 if is_inr else 10_000_000,
+                                      10_000_000 if is_inr else 1_000_000,
+                                      100_000 if is_inr else 10_000, key="np_ga")
             r_np    = st.slider("Annual Return (%)", 1.0, 20.0, 10.0, 0.5, key="np_r")
         try:
             r_mo = r_np/100/12
@@ -957,9 +1012,21 @@ with tab7:
     with tvm5:
         c1,c2 = st.columns(2)
         with c1:
-            curr_sv5 = st.number_input("Current Savings",   0, 50000000, 500000 if is_inr else 50000, 10000, key="rt_cs")
-            mo_con5  = st.number_input("Monthly Contribution", 1000, 1000000, 25000 if is_inr else 1000, 1000, key="rt_mc")
-            target5  = st.number_input("Target Corpus", 100000, 500000000, 20000000 if is_inr else 1500000, 100000, key="rt_tg")
+            curr_sv5 = st.number_input(f"Current Savings ({curr_sym})",
+                                       0,
+                                       50_000_000 if is_inr else 2_000_000,
+                                       500_000 if is_inr else 50_000,
+                                       10_000 if is_inr else 1_000, key="rt_cs")
+            mo_con5  = st.number_input(f"Monthly Contribution ({curr_sym})",
+                                       1_000 if is_inr else 100,
+                                       1_000_000 if is_inr else 50_000,
+                                       25_000 if is_inr else 1_000,
+                                       1_000 if is_inr else 100, key="rt_mc")
+            target5  = st.number_input(f"Target Corpus ({curr_sym})",
+                                       100_000 if is_inr else 10_000,
+                                       500_000_000 if is_inr else 10_000_000,
+                                       20_000_000 if is_inr else 1_500_000,
+                                       100_000 if is_inr else 10_000, key="rt_tg")
             years5   = st.slider("Years to Retirement", 5, 50, years_to_ret, 1, key="rt_yr")
         # Solve for rate numerically
         def corpus_at_rate(r_annual):
@@ -1575,8 +1642,16 @@ with tab9:
 
         col1, col2 = st.columns([1, 2])
         with col1:
-            bf_initial = st.number_input("Initial Investment (₹)", 10000, 10000000, 1000000, 50000, key="bf_init")
-            bf_sip     = st.number_input("Monthly SIP (₹)", 0, 500000, 10000, 1000, key="bf_sip")
+            bf_initial = st.number_input(f"Initial Investment ({curr_sym})",
+                                         10_000 if is_inr else 1_000,
+                                         10_000_000 if is_inr else 500_000,
+                                         1_000_000 if is_inr else 50_000,
+                                         50_000 if is_inr else 1_000, key="bf_init")
+            bf_sip     = st.number_input(f"Monthly SIP ({curr_sym})",
+                                         0,
+                                         500_000 if is_inr else 20_000,
+                                         10_000 if is_inr else 500,
+                                         1_000 if is_inr else 100, key="bf_sip")
             bf_years   = st.slider("Investment Horizon (years)", 5, 40, 20, 1, key="bf_yr")
             bf_ret     = st.slider("Market Annual Return (%)", 8.0, 18.0, 13.0, 0.5, key="bf_ret") / 100
             bf_miss    = st.slider("Best Days Missed (panic selling)", 0, 30, 10, 5, key="bf_miss")
@@ -1638,7 +1713,11 @@ with tab9:
         """)
 
         delay_years = st.slider("Years of delay before starting SIP", 0, 20, 5, 1)
-        monthly_sip = st.number_input("Monthly SIP Amount (₹)", 1000, 500000, 10000, 1000, key="hd_sip")
+        monthly_sip = st.number_input(f"Monthly SIP Amount ({curr_sym})",
+                                      1_000 if is_inr else 100,
+                                      500_000 if is_inr else 20_000,
+                                      10_000 if is_inr else 500,
+                                      1_000 if is_inr else 100, key="hd_sip")
         hd_ret      = st.slider("Annual Return (%)", 8.0, 18.0, 12.0, 1.0, key="hd_ret") / 100
         hd_years    = st.slider("Total Investment Horizon (years from today)", 10, 40, 30, 1, key="hd_yr")
 
