@@ -1740,8 +1740,9 @@ with tab9:
                                for i in range(21)]),
             text=[f"₹{v/1e7:.1f}Cr" for v in vals_by_delay],
             textposition="outside", textfont=dict(size=8, color="#e6f1ff")))
-        fig_hd.update_layout(**base_layout("Final Corpus by Years of Delay", h=320),
-            xaxis_extra=dict(title="Years Delayed Before Starting SIP"))
+        fig_hd.update_layout(
+            **base_layout("Final Corpus by Years of Delay", h=320,
+                          xaxis_extra=dict(title="Years Delayed Before Starting SIP")))
         fig_hd.update_yaxes(tickformat=".2s", title="Final Corpus (₹)")
         st.plotly_chart(fig_hd, use_container_width=True)
 
