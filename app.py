@@ -124,13 +124,6 @@ section[data-testid="stMain"] h4 {
 [data-testid="stSlider"] > div > div > div {
     background: var(--gold) !important;
 }
-.stNumberInput input, .stTextInput input, .stSelectbox select {
-    background: rgba(0,51,102,0.4) !important;
-    border: 1px solid rgba(255,215,0,0.3) !important;
-    color: var(--txt) !important;
-    border-radius: 6px;
-    font-family: 'DM Mono', monospace;
-}
 
 /* ─── Sidebar widget labels — force lightblue, never gold ─── */
 [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
@@ -241,12 +234,76 @@ hr { border-color: rgba(255,215,0,0.15) !important; }
 /* ─── Alerts ─── */
 .stAlert { border-radius: 10px; border-left: 4px solid; }
 
-/* ─── Selectbox dropdown text ─── */
-[data-testid="stSelectbox"] span,
-[data-testid="stSelectbox"] div { color: var(--txt) !important; }
-
-/* ─── Number input +/- buttons ─── */
-.stNumberInput button { color: var(--gold) !important; background: rgba(0,51,102,0.5) !important; border-color: rgba(255,215,0,0.3) !important; }
+/* ─── Selectbox — full overhaul targeting BaseUI components ─── */
+/* The closed box (trigger) */
+[data-testid="stSelectbox"] [data-baseweb="select"] > div:first-child,
+[data-testid="stSelectbox"] [data-baseweb="select"] div[class*="control"],
+[data-testid="stSelectbox"] div[role="combobox"],
+[data-testid="stSelectbox"] div[role="combobox"] > div {
+    background: rgba(0, 51, 102, 0.7) !important;
+    border: 1px solid rgba(255, 215, 0, 0.45) !important;
+    border-radius: 8px !important;
+    color: #e6f1ff !important;
+}
+/* The selected value text inside the closed box */
+[data-testid="stSelectbox"] [data-baseweb="select"] span,
+[data-testid="stSelectbox"] [data-baseweb="select"] div[class*="singleValue"],
+[data-testid="stSelectbox"] [data-baseweb="select"] [class*="placeholder"],
+[data-testid="stSelectbox"] div[role="combobox"] span {
+    color: #e6f1ff !important;
+    font-weight: 500 !important;
+    font-size: 0.85rem !important;
+}
+/* Dropdown chevron/arrow */
+[data-testid="stSelectbox"] svg {
+    fill: #FFD700 !important;
+    color: #FFD700 !important;
+}
+/* The open dropdown list container */
+[data-baseweb="popover"],
+[data-baseweb="menu"],
+ul[data-baseweb="menu"],
+[data-testid="stSelectbox"] + div,
+div[class*="menu"],
+div[class*="menuList"] {
+    background: #0d1f3c !important;
+    border: 1px solid rgba(255, 215, 0, 0.3) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+}
+/* Each option item in the dropdown */
+[data-baseweb="menu"] li,
+[data-baseweb="menu"] [role="option"],
+ul[data-baseweb="menu"] li,
+div[class*="option"] {
+    background: #0d1f3c !important;
+    color: #c8d8f0 !important;
+    font-size: 0.85rem !important;
+    padding: 10px 14px !important;
+}
+/* Hover state on options */
+[data-baseweb="menu"] li:hover,
+[data-baseweb="menu"] [role="option"]:hover,
+[data-baseweb="menu"] [aria-selected="true"],
+div[class*="option"]:hover {
+    background: rgba(0, 77, 128, 0.8) !important;
+    color: #FFD700 !important;
+}
+/* Number input +/- buttons */
+.stNumberInput button {
+    color: var(--gold) !important;
+    background: rgba(0, 51, 102, 0.5) !important;
+    border-color: rgba(255, 215, 0, 0.3) !important;
+}
+/* Number input field itself */
+.stNumberInput input, .stTextInput input {
+    background: rgba(0, 51, 102, 0.4) !important;
+    border: 1px solid rgba(255, 215, 0, 0.3) !important;
+    color: #e6f1ff !important;
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.88rem !important;
+}
 
 /* ─── hide hamburger & Streamlit footer ─── */
 #MainMenu, footer { visibility: hidden; }
