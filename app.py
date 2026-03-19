@@ -1,5 +1,6 @@
 
 import streamlit as st
+import streamlit.components.v1
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -702,9 +703,12 @@ NAV_SECTIONS = [
 
 if "active_section" not in st.session_state:
     st.session_state["active_section"] = "dashboard"
+if "just_navigated" not in st.session_state:
+    st.session_state["just_navigated"] = False
 
 def _nav_click(key):
     st.session_state["active_section"] = key
+    st.session_state["just_navigated"] = True
 
 active = st.session_state["active_section"]
 
@@ -798,18 +802,48 @@ for col, (key, emoji, label, grp) in zip(row2_cols, [s for s in NAV_SECTIONS if 
                 use_container_width=True,
             )
 
-# ── Active section indicator ─────────────────────────────────────────────────
+# ── Active section indicator + scroll anchor ──────────────────────────────────
 _sec = next(s for s in NAV_SECTIONS if s[0] == active)
 _row_color = "#FFD700" if _sec[3] == "analysis" else "#ADD8E6"
-_row_label = "Analysis" if _sec[3] == "analysis" else "Education"
+
+# Anchor div — JS scrolls to this on nav click
 st.markdown(
-    f'<div style="border-top:2px solid {_row_color};margin:8px 0 16px 0;padding-top:10px;">'
+    f'<div id="mp-content-anchor" style="border-top:2px solid {_row_color};'
+    f'margin:8px 0 16px 0;padding-top:10px;">'
     f'<span style="background:{_row_color};color:#001a33;font-size:0.72rem;font-weight:800;'
     f'padding:3px 12px;border-radius:0 0 8px 8px;letter-spacing:0.08em;">'
     f'▼ &nbsp;{_sec[1]} {_sec[2].upper()}'
     f'</span></div>',
     unsafe_allow_html=True
 )
+
+# JavaScript scroll — fires only when a nav button was just clicked
+if st.session_state.get("just_navigated", False):
+    st.session_state["just_navigated"] = False
+    st.components.v1.html("""
+<script>
+(function() {
+    // Walk up into the parent Streamlit iframe document and scroll to anchor
+    function scrollToContent() {
+        // Try within same document first (no iframe)
+        var anchor = document.getElementById('mp-content-anchor');
+        if (anchor) {
+            anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+        }
+        // Try parent window (Streamlit embeds in iframe)
+        try {
+            var parentAnchor = window.parent.document.getElementById('mp-content-anchor');
+            if (parentAnchor) {
+                parentAnchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        } catch(e) {}
+    }
+    // Small delay ensures DOM is updated before scroll
+    setTimeout(scrollToContent, 120);
+})();
+</script>
+""", height=0, scrolling=False)
 
 # ── CSS: Style the nav buttons ────────────────────────────────────────────────
 st.markdown("""
