@@ -440,7 +440,9 @@ post_real_ret      = (1 + post_ret_return) / (1 + inflation_rate) - 1
 # Spending at retirement (inflation-adjusted)
 spending_at_ret    = desired_spending * (1 + inflation_rate) ** years_to_ret
 annual_gap         = max(0, spending_at_ret - pension_income - other_income)
-annual_gap_after_tax = annual_gap / (1 - tax_rate)
+# annual_gap_after_tax: gross-up for tax — used ONLY for corpus sizing & withdrawal schedule
+# annual_gap is the pre-tax gap shown in Plan Summary (more intuitive)
+annual_gap_after_tax = annual_gap / (1 - tax_rate) if tax_rate < 1 else annual_gap
 
 # Required corpus (PV of retirement annuity - real return)
 required_corpus    = pv_annuity(annual_gap_after_tax, post_real_ret, years_in_ret)
@@ -454,11 +456,17 @@ surplus_shortfall  = projected_savings - required_corpus
 funding_ratio      = projected_savings / required_corpus if required_corpus > 0 else 0
 safe_wr            = annual_gap / projected_savings if projected_savings > 0 else 0
 
-# Required monthly savings to meet corpus
-if pre_real_ret > 0:
-    req_monthly_pmt = (required_corpus - fv_current) * pre_real_ret / ((1+pre_real_ret)**years_to_ret - 1) / 12
+# Required monthly savings — use NOMINAL monthly rate (contributions are in nominal ₹, not real ₹)
+# Formula: PMT = (FV_target - FV_current_savings) × r_mo / ((1+r_mo)^n - 1)
+_r_mo = pre_ret_return / 12
+_n_mo = years_to_ret * 12
+_fv_curr_nom = curr_savings * (1 + _r_mo) ** _n_mo
+if _r_mo > 0 and required_corpus > _fv_curr_nom:
+    req_monthly_pmt = (required_corpus - _fv_curr_nom) * _r_mo / ((1 + _r_mo) ** _n_mo - 1)
+elif required_corpus <= _fv_curr_nom:
+    req_monthly_pmt = 0.0  # existing savings already enough
 else:
-    req_monthly_pmt = (required_corpus - fv_current) / (years_to_ret * 12)
+    req_monthly_pmt = (required_corpus - _fv_curr_nom) / _n_mo
 
 # ─── Year-by-year savings schedule ───
 def build_savings_schedule(n_years, start_bal, start_income, income_g, sav_rate, ret):
@@ -673,31 +681,50 @@ with tab1:
         st.plotly_chart(fig_g, use_container_width=True)
 
         # Key metrics summary card
+        _gap_color = "#ADD8E6"
+        _req_color = "#28a745" if req_monthly_pmt <= monthly_savings else "#dc3545"
+        _req_label = "✅ On Track" if req_monthly_pmt <= monthly_savings else "⬆ Need More"
         st.markdown(f"""
-        <div style="background:rgba(0,51,102,0.5);border:1px solid rgba(255,215,0,0.2);
-            border-radius:12px;padding:18px;font-size:0.8rem;line-height:2;">
-        <div style="color:#FFD700;font-family:'Playfair Display';font-size:0.95rem;margin-bottom:8px;">
+        <div style="background:rgba(0,51,102,0.55);border:1px solid rgba(255,215,0,0.25);
+            border-radius:12px;padding:18px;font-size:0.8rem;line-height:1.9;">
+        <div style="color:#FFD700;font-family:'Playfair Display';font-size:0.95rem;
+            margin-bottom:10px;border-bottom:1px solid rgba(255,215,0,0.15);padding-bottom:6px;">
             📋 Plan Summary
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-            <span style="color:#8892b0;">Annual Savings</span>
-            <span style="color:#ADD8E6;text-align:right;">{fmt(ann_savings)}</span>
-            <span style="color:#8892b0;">Monthly Savings</span>
-            <span style="color:#ADD8E6;text-align:right;">{fmt(monthly_savings)}</span>
-            <span style="color:#8892b0;">Spending @ Retirement</span>
-            <span style="color:#ADD8E6;text-align:right;">{fmt(spending_at_ret)}</span>
-            <span style="color:#8892b0;">Annual Funding Gap</span>
-            <span style="color:#ADD8E6;text-align:right;">{fmt(annual_gap_after_tax)}</span>
-            <span style="color:#8892b0;">Pre-Ret Real Return</span>
-            <span style="color:#ADD8E6;text-align:right;">{pre_real_ret*100:.2f}%</span>
-            <span style="color:#8892b0;">Post-Ret Real Return</span>
-            <span style="color:#ADD8E6;text-align:right;">{post_real_ret*100:.2f}%</span>
-            <span style="color:#8892b0;">Req. Monthly Savings</span>
-            <span style="color:{'#28a745' if req_monthly_pmt<=monthly_savings else '#dc3545'};text-align:right;font-weight:600;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;">
+
+            <span style="color:#a8b2d8;font-size:0.76rem;">Annual Savings</span>
+            <span style="color:#e6f1ff;text-align:right;font-weight:500;">{fmt(ann_savings)}</span>
+
+            <span style="color:#a8b2d8;font-size:0.76rem;">Monthly Savings</span>
+            <span style="color:#e6f1ff;text-align:right;font-weight:500;">{fmt(monthly_savings)}</span>
+
+            <span style="color:#a8b2d8;font-size:0.76rem;">Spending @ Retirement</span>
+            <span style="color:#e6f1ff;text-align:right;font-weight:500;">{fmt(spending_at_ret)}</span>
+
+            <span style="color:#a8b2d8;font-size:0.76rem;">Annual Gap (pre-tax)</span>
+            <span style="color:#e6f1ff;text-align:right;font-weight:500;">{fmt(annual_gap)}</span>
+
+            <span style="color:#a8b2d8;font-size:0.76rem;">Annual Gap (gross-up)</span>
+            <span style="color:#e6f1ff;text-align:right;font-weight:500;">{fmt(annual_gap_after_tax)}
+                <span style="color:#8892b0;font-size:0.68rem;"> incl. tax</span></span>
+
+            <span style="color:#a8b2d8;font-size:0.76rem;">Pre-Ret Real Return</span>
+            <span style="color:#e6f1ff;text-align:right;">{pre_real_ret*100:.2f}%
+                <span style="color:#8892b0;font-size:0.68rem;"> = {pre_ret_return*100:.0f}%−{inflation_rate*100:.0f}%</span></span>
+
+            <span style="color:#a8b2d8;font-size:0.76rem;">Post-Ret Real Return</span>
+            <span style="color:#e6f1ff;text-align:right;">{post_real_ret*100:.2f}%
+                <span style="color:#8892b0;font-size:0.68rem;"> = {post_ret_return*100:.0f}%−{inflation_rate*100:.0f}%</span></span>
+
+            <span style="color:#a8b2d8;font-size:0.76rem;">Req. Monthly (nominal)</span>
+            <span style="color:{_req_color};text-align:right;font-weight:700;">
                 {fmt(req_monthly_pmt)}
+                <span style="font-size:0.7rem;font-weight:400;"> {_req_label}</span>
             </span>
-            <span style="color:#8892b0;">Current Monthly Savings</span>
-            <span style="color:#FFD700;text-align:right;font-weight:600;">{fmt(monthly_savings)}</span>
+
+            <span style="color:#a8b2d8;font-size:0.76rem;">Your Monthly Savings</span>
+            <span style="color:#FFD700;text-align:right;font-weight:700;">{fmt(monthly_savings)}</span>
         </div>
         </div>""", unsafe_allow_html=True)
 
