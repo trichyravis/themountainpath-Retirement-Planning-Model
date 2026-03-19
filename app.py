@@ -704,53 +704,48 @@ with tab1:
                             font=dict(color="#e6f1ff"))
         st.plotly_chart(fig_g, use_container_width=True)
 
-        # Key metrics summary card
-        _gap_color = "#ADD8E6"
+        # Key metrics summary card — built as explicit string to avoid f-string/markdown HTML escaping
         _req_color = "#28a745" if req_monthly_pmt <= monthly_savings else "#dc3545"
         _req_label = "✅ On Track" if req_monthly_pmt <= monthly_savings else "⬆ Need More"
-        st.markdown(f"""
-        <div style="background:rgba(0,51,102,0.55);border:1px solid rgba(255,215,0,0.25);
-            border-radius:12px;padding:18px;font-size:0.8rem;line-height:1.9;">
-        <div style="color:#FFD700;font-family:'Playfair Display';font-size:0.95rem;
-            margin-bottom:10px;border-bottom:1px solid rgba(255,215,0,0.15);padding-bottom:6px;">
-            📋 Plan Summary
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;">
 
-            <span style="color:#a8b2d8;font-size:0.76rem;">Annual Savings</span>
-            <span style="color:#e6f1ff;text-align:right;font-weight:500;">{fmt(ann_savings)}</span>
+        def _row(label, value, val_color="#e6f1ff", val_weight="500", suffix=""):
+            return (
+                f'<span style="color:#a8b2d8;font-size:0.76rem;">{label}</span>'
+                f'<span style="color:{val_color};text-align:right;font-weight:{val_weight};">'
+                f'{value}'
+                f'{"<br><small style=color:#8892b0;font-size:0.68rem;>" + suffix + "</small>" if suffix else ""}'
+                f'</span>'
+            )
 
-            <span style="color:#a8b2d8;font-size:0.76rem;">Monthly Savings</span>
-            <span style="color:#e6f1ff;text-align:right;font-weight:500;">{fmt(monthly_savings)}</span>
+        _summary_html = (
+            '<div style="background:rgba(0,51,102,0.55);border:1px solid rgba(255,215,0,0.25);'
+            'border-radius:12px;padding:18px;font-size:0.8rem;line-height:1.9;">'
 
-            <span style="color:#a8b2d8;font-size:0.76rem;">Spending @ Retirement</span>
-            <span style="color:#e6f1ff;text-align:right;font-weight:500;">{fmt(spending_at_ret)}</span>
+            '<div style="color:#FFD700;font-family:Playfair Display,serif;font-size:0.95rem;'
+            'margin-bottom:10px;border-bottom:1px solid rgba(255,215,0,0.15);padding-bottom:6px;">'
+            '📋 Plan Summary</div>'
 
-            <span style="color:#a8b2d8;font-size:0.76rem;">Annual Gap (pre-tax)</span>
-            <span style="color:#e6f1ff;text-align:right;font-weight:500;">{fmt(annual_gap)}</span>
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;">'
 
-            <span style="color:#a8b2d8;font-size:0.76rem;">Annual Gap (gross-up)</span>
-            <span style="color:#e6f1ff;text-align:right;font-weight:500;">{fmt(annual_gap_after_tax)}
-                <span style="color:#8892b0;font-size:0.68rem;"> incl. tax</span></span>
+            + _row("Annual Savings",        fmt(ann_savings))
+            + _row("Monthly Savings",       fmt(monthly_savings))
+            + _row("Spending @ Retirement", fmt(spending_at_ret))
+            + _row("Annual Gap (pre-tax)",  fmt(annual_gap))
+            + _row("Annual Gap (gross-up)", fmt(annual_gap_after_tax), suffix="incl. tax gross-up")
+            + _row("Pre-Ret Real Return",
+                   f"{pre_real_ret*100:.2f}%",
+                   suffix=f"{pre_ret_return*100:.0f}% nominal − {inflation_rate*100:.0f}% inflation")
+            + _row("Post-Ret Real Return",
+                   f"{post_real_ret*100:.2f}%",
+                   suffix=f"{post_ret_return*100:.0f}% nominal − {inflation_rate*100:.0f}% inflation")
+            + _row("Req. Monthly (nominal)",
+                   f"{fmt(req_monthly_pmt)} &nbsp;<small style='font-weight:400;font-size:0.7rem;'>{_req_label}</small>",
+                   val_color=_req_color, val_weight="700")
+            + _row("Your Monthly Savings",  fmt(monthly_savings), val_color="#FFD700", val_weight="700")
 
-            <span style="color:#a8b2d8;font-size:0.76rem;">Pre-Ret Real Return</span>
-            <span style="color:#e6f1ff;text-align:right;">{pre_real_ret*100:.2f}%
-                <span style="color:#8892b0;font-size:0.68rem;"> = {pre_ret_return*100:.0f}%−{inflation_rate*100:.0f}%</span></span>
-
-            <span style="color:#a8b2d8;font-size:0.76rem;">Post-Ret Real Return</span>
-            <span style="color:#e6f1ff;text-align:right;">{post_real_ret*100:.2f}%
-                <span style="color:#8892b0;font-size:0.68rem;"> = {post_ret_return*100:.0f}%−{inflation_rate*100:.0f}%</span></span>
-
-            <span style="color:#a8b2d8;font-size:0.76rem;">Req. Monthly (nominal)</span>
-            <span style="color:{_req_color};text-align:right;font-weight:700;">
-                {fmt(req_monthly_pmt)}
-                <span style="font-size:0.7rem;font-weight:400;"> {_req_label}</span>
-            </span>
-
-            <span style="color:#a8b2d8;font-size:0.76rem;">Your Monthly Savings</span>
-            <span style="color:#FFD700;text-align:right;font-weight:700;">{fmt(monthly_savings)}</span>
-        </div>
-        </div>""", unsafe_allow_html=True)
+            + '</div></div>'
+        )
+        st.markdown(_summary_html, unsafe_allow_html=True)
 
         # Waterfall – corpus build-up
         st.markdown("<br>", unsafe_allow_html=True)
