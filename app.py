@@ -712,25 +712,28 @@ active = st.session_state["active_section"]
 st.markdown("""
 <div style="background:linear-gradient(90deg,rgba(0,51,102,0.8),rgba(0,77,128,0.6));
     border:1px solid rgba(255,215,0,0.35);border-radius:10px;
-    padding:10px 18px;margin-bottom:10px;
+    padding:10px 18px;margin-bottom:14px;
     display:flex;align-items:center;gap:12px;">
   <span style="font-size:1.3rem;">👆</span>
   <div>
     <span style="color:#FFD700;font-weight:700;font-size:0.85rem;">How to navigate:</span>
     <span style="color:#c8d8f0;font-size:0.82rem;">
       &nbsp;Click any button below to open that section.
-      &nbsp;<b style="color:#FFD700;">Row 1</b> = Analysis tools &nbsp;·&nbsp;
-      <b style="color:#ADD8E6;">Row 2</b> = Education &amp; Learning
+      &nbsp;<b style="color:#FFD700;">📐 Analysis Tools</b> for planning &nbsp;·&nbsp;
+      <b style="color:#ADD8E6;">📚 Education &amp; Learning</b> for concepts &amp; case studies.
     </span>
   </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Row 1: Analysis ───────────────────────────────────────────────────────────
+# ── Analysis Tools Row ────────────────────────────────────────────────────────
 st.markdown("""
-<div style="font-size:0.68rem;color:#FFD700;font-weight:700;letter-spacing:0.14em;
-    text-transform:uppercase;margin-bottom:5px;padding-left:2px;">
-  📐 &nbsp;Row 1 — Analysis Tools
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;margin-top:2px;">
+  <span style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:900;
+    color:#FFD700;letter-spacing:0.04em;text-shadow:0 0 20px rgba(255,215,0,0.4);">
+    📐 Analysis Tools
+  </span>
+  <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(255,215,0,0.5),transparent);"></div>
 </div>""", unsafe_allow_html=True)
 
 row1_cols = st.columns(5)
@@ -759,11 +762,14 @@ for col, (key, emoji, label, grp) in zip(row1_cols, [s for s in NAV_SECTIONS if 
                 use_container_width=True,
             )
 
-# ── Row 2: Education ─────────────────────────────────────────────────────────
+# ── Education & Learning Tools Row ───────────────────────────────────────────
 st.markdown("""
-<div style="font-size:0.68rem;color:#ADD8E6;font-weight:700;letter-spacing:0.14em;
-    text-transform:uppercase;margin:10px 0 5px 2px;">
-  📚 &nbsp;Row 2 — Education &amp; Learning Tools
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;margin-top:14px;">
+  <span style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:900;
+    color:#ADD8E6;letter-spacing:0.04em;text-shadow:0 0 20px rgba(173,216,230,0.35);">
+    📚 Education &amp; Learning
+  </span>
+  <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(173,216,230,0.4),transparent);"></div>
 </div>""", unsafe_allow_html=True)
 
 row2_cols = st.columns(5)
