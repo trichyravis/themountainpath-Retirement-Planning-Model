@@ -331,12 +331,31 @@ with st.sidebar:
     </div>""", unsafe_allow_html=True)
 
     st.markdown("## 💰 Income & Savings")
-    currency  = st.selectbox("Currency", ["₹ INR (Lakhs/Crores)", "$ USD (Thousands)"])
+
+    # ── Currency selector with auto-reset on switch ──────────────────────────
+    # Detect currency change via session_state; reset all numeric inputs to
+    # correct defaults so no stale INR value pollutes USD fields or vice-versa.
+    if "currency" not in st.session_state:
+        st.session_state["currency"] = "₹ INR (Lakhs/Crores)"
+
+    currency = st.selectbox(
+        "Currency",
+        ["₹ INR (Lakhs/Crores)", "$ USD (Thousands)"],
+        key="currency"
+    )
     curr_sym  = "₹" if "INR" in currency else "$"
     is_inr    = "INR" in currency
 
-    # All min/max/default/step values scale with currency to prevent StreamlitValueBelowMinError
-    # INR scale: Lakhs/Crores.   USD scale: Thousands.
+    # Detect switch and reset all dependent widget keys
+    _prev_cur = st.session_state.get("_prev_currency", currency)
+    if _prev_cur != currency:
+        # Wipe all number_input keys so they revert to new-currency defaults
+        for _k in ["sb_inc","sb_sav","sb_spc","sb_pen","sb_oth"]:
+            if _k in st.session_state:
+                del st.session_state[_k]
+    st.session_state["_prev_currency"] = currency
+
+    # All min/max/default/step scale with currency
     if is_inr:
         INC  = dict(mn=100_000,    mx=100_000_000, df=1_500_000, st=50_000)
         SAV  = dict(mn=0,          mx=500_000_000, df=500_000,   st=10_000)
@@ -351,7 +370,8 @@ with st.sidebar:
         OTH  = dict(mn=0,          mx=200_000,     df=0,         st=500)
 
     curr_income  = st.number_input(f"Annual Income ({curr_sym})",
-                                   INC["mn"], INC["mx"], INC["df"], INC["st"])
+                                   INC["mn"], INC["mx"], INC["df"], INC["st"],
+                                   key="sb_inc")
 
     # Human-readable income interpretation (converts raw number to Lakhs/Crores or K/M)
     if is_inr:
@@ -367,7 +387,8 @@ with st.sidebar:
     income_growth= st.slider("Income Growth Rate (%)", 0.0, 15.0, 7.0 if is_inr else 3.0, 0.5) / 100
     savings_rate = st.slider("Savings Rate (% of Income)", 1.0, 50.0, 20.0 if is_inr else 15.0, 0.5) / 100
     curr_savings = st.number_input(f"Current Savings ({curr_sym})",
-                                   SAV["mn"], SAV["mx"], SAV["df"], SAV["st"])
+                                   SAV["mn"], SAV["mx"], SAV["df"], SAV["st"],
+                                   key="sb_sav")
     if is_inr:
         _sav_fmt = f"₹{curr_savings/1e5:.2f} Lakhs" if curr_savings < 1e7 else f"₹{curr_savings/1e7:.2f} Crores"
     else:
@@ -405,7 +426,8 @@ with st.sidebar:
 
     st.markdown("## 🏠 Retirement Spending")
     desired_spending = st.number_input(f"Desired Annual Spending Today ({curr_sym})",
-                                       SPC["mn"], SPC["mx"], SPC["df"], SPC["st"])
+                                       SPC["mn"], SPC["mx"], SPC["df"], SPC["st"],
+                                       key="sb_spc")
     if is_inr:
         _spc_fmt = f"₹{desired_spending/1e5:.2f} Lakhs/yr" if desired_spending < 1e7 else f"₹{desired_spending/1e7:.2f} Crores/yr"
     else:
@@ -414,7 +436,8 @@ with st.sidebar:
 
     replacement_ratio= st.slider("Income Replacement Ratio (%)", 40.0, 100.0, 75.0, 5.0) / 100
     pension_income   = st.number_input(f"Annual Pension / Social Security ({curr_sym})",
-                                       PEN["mn"], PEN["mx"], PEN["df"], PEN["st"])
+                                       PEN["mn"], PEN["mx"], PEN["df"], PEN["st"],
+                                       key="sb_pen")
     if pension_income > 0:
         if is_inr:
             _pen_fmt = f"₹{pension_income/1e5:.2f} L/yr · ₹{pension_income/12/1000:.1f}K/mo"
@@ -422,7 +445,8 @@ with st.sidebar:
             _pen_fmt = f"${pension_income/1e3:.1f}K/yr · ${pension_income/12:,.0f}/mo"
         st.markdown(f'<div style="font-size:0.72rem;color:#8892b0;margin:-10px 0 6px 2px;">≡ {_pen_fmt}</div>', unsafe_allow_html=True)
     other_income     = st.number_input(f"Other Retirement Income ({curr_sym})",
-                                       OTH["mn"], OTH["mx"], OTH["df"], OTH["st"])
+                                       OTH["mn"], OTH["mx"], OTH["df"], OTH["st"],
+                                       key="sb_oth")
 
     st.markdown("## 🎲 Monte Carlo")
     mc_sims      = st.slider("Simulations", 500, 5000, 1000, 500)
