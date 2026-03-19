@@ -399,9 +399,10 @@ st.markdown("---")
 # ═══════════════════════════════════════════════════════════════════════════════
 # ─── MAIN TABS ────────────────────────────────────────────────────────────────
 # ═══════════════════════════════════════════════════════════════════════════════
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "📊 Dashboard", "📈 Savings Growth", "🏦 Retirement Needs",
-    "💸 Withdrawal Plan", "🔬 Sensitivity", "🎲 Monte Carlo", "📚 TVM Basics"
+    "💸 Withdrawal Plan", "🔬 Sensitivity", "🎲 Monte Carlo", "📚 TVM Basics",
+    "🎓 Case Studies", "⚖️ Behavioural Finance", "📖 Glossary & Formulas"
 ])
 
 PLOT_BG = "rgba(0,0,0,0)"
@@ -979,7 +980,909 @@ with tab7:
             <div style="color:#ADD8E6;font-size:0.75rem;">To reach {fmt(target5)} in {years5} years</div>
             </div>""", unsafe_allow_html=True)
 
-# ─── FOOTER ──────────────────────────────────────────────────────────────────
+# ───────────────────────────────────────
+# TAB 8 – CASE STUDIES
+# ───────────────────────────────────────
+with tab8:
+    st.markdown("### 🎓 Real-World Case Studies in Retirement Planning")
+    st.caption("Interactive case studies drawn from Indian and global financial planning practice. Work through each scenario, change the assumptions, and see the outcomes.")
+
+    cs_tabs = st.tabs([
+        "📘 Case 1 · The Late Starter",
+        "📗 Case 2 · The Early Bird",
+        "📙 Case 3 · The Dual-Income Couple",
+        "📕 Case 4 · Inflation Shock",
+        "📓 Case 5 · The Entrepreneur",
+    ])
+
+    # ── Shared case-study helpers ──────────────────────────────────────────────
+    def case_card(title, subtitle, color="#003366"):
+        st.markdown(f"""
+        <div style="background:linear-gradient(135deg,{color},rgba(0,51,102,0.6));
+            border:1px solid rgba(255,215,0,0.3);border-radius:14px;padding:20px 24px;margin-bottom:18px;">
+        <div style="font-family:'Playfair Display',serif;font-size:1.25rem;color:#FFD700;margin-bottom:4px;">{title}</div>
+        <div style="font-size:0.8rem;color:#ADD8E6;line-height:1.6;">{subtitle}</div>
+        </div>""", unsafe_allow_html=True)
+
+    def insight_box(text, icon="💡"):
+        st.markdown(f"""
+        <div style="background:rgba(255,215,0,0.07);border-left:4px solid #FFD700;
+            border-radius:0 10px 10px 0;padding:12px 16px;margin:10px 0;font-size:0.82rem;color:#e6f1ff;line-height:1.7;">
+        {icon} {text}
+        </div>""", unsafe_allow_html=True)
+
+    def lesson_box(text):
+        st.markdown(f"""
+        <div style="background:rgba(40,167,69,0.12);border-left:4px solid #28a745;
+            border-radius:0 10px 10px 0;padding:12px 16px;margin:10px 0;font-size:0.82rem;color:#e6f1ff;line-height:1.7;">
+        🎯 <b style="color:#28a745;">Learning Outcome:</b> {text}
+        </div>""", unsafe_allow_html=True)
+
+    def warning_box(text):
+        st.markdown(f"""
+        <div style="background:rgba(220,53,69,0.12);border-left:4px solid #dc3545;
+            border-radius:0 10px 10px 0;padding:12px 16px;margin:10px 0;font-size:0.82rem;color:#e6f1ff;line-height:1.7;">
+        ⚠️ {text}
+        </div>""", unsafe_allow_html=True)
+
+    # ── CASE 1 · THE LATE STARTER ─────────────────────────────────────────────
+    with cs_tabs[0]:
+        case_card(
+            "Rajan Mehta — The Late Starter",
+            "Age 45 · Senior Manager at an IT firm · ₹18L annual income · Only ₹5L saved so far · Wants to retire at 62"
+        )
+        st.markdown("""
+        **Situation:** Rajan spent his 30s paying off a home loan and children's education. At 45, 
+        he has just ₹5 lakhs in his PPF and now wants to build a retirement corpus of ₹2 Crore by 62.
+        He can save aggressively — up to 30% of income. What does the math say?
+        """)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            cs1_income    = st.number_input("Annual Income (₹)", 500000, 10000000, 1800000, 100000, key="cs1_inc")
+            cs1_savings_r = st.slider("Savings Rate (%)", 5, 50, 30, 5, key="cs1_sr") / 100
+            cs1_curr_sav  = st.number_input("Current Savings (₹)", 0, 5000000, 500000, 50000, key="cs1_cs")
+            cs1_ret       = st.slider("Expected Return (%)", 6.0, 16.0, 11.0, 0.5, key="cs1_r") / 100
+            cs1_infl      = st.slider("Inflation (%)", 3.0, 9.0, 6.0, 0.5, key="cs1_inf") / 100
+            cs1_inc_g     = st.slider("Income Growth (%)", 2.0, 10.0, 5.0, 0.5, key="cs1_ig") / 100
+            cs1_years     = 62 - 45  # 17 years
+            cs1_ann_sav   = cs1_income * cs1_savings_r
+
+        cs1_fv_curr  = cs1_curr_sav * (1 + cs1_ret) ** cs1_years
+        cs1_fv_cont  = fv_growing_annuity(cs1_ann_sav, cs1_inc_g, cs1_ret, cs1_years)
+        cs1_projected = cs1_fv_curr + cs1_fv_cont
+        cs1_target    = 20000000  # ₹2 Cr
+
+        with col2:
+            funded = cs1_projected >= cs1_target
+            st.markdown(f"""
+            <div style="background:rgba(0,51,102,0.6);border:1px solid rgba(255,215,0,0.3);
+                border-radius:12px;padding:20px;text-align:center;margin-top:8px;">
+            <div style="color:#8892b0;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;">Projected Corpus @ 62</div>
+            <div style="font-family:'Playfair Display';font-size:2.2rem;color:#FFD700;margin:8px 0;">
+                ₹{cs1_projected/1e7:.2f} Cr</div>
+            <div style="color:{'#28a745' if funded else '#dc3545'};font-size:0.85rem;font-weight:600;">
+                {'✅ Target of ₹2 Cr Achieved!' if funded else f'❌ Shortfall: ₹{(cs1_target-cs1_projected)/1e5:.1f}L'}</div>
+            <hr style="border-color:rgba(255,215,0,0.15);margin:10px 0;">
+            <div style="font-size:0.75rem;color:#8892b0;">Annual Savings: ₹{cs1_ann_sav/1e5:.1f}L</div>
+            <div style="font-size:0.75rem;color:#8892b0;">Monthly: ₹{cs1_ann_sav/12/1000:.1f}K</div>
+            <div style="font-size:0.75rem;color:#8892b0;">Compounding: {cs1_years} years</div>
+            </div>""", unsafe_allow_html=True)
+
+        # Year-by-year chart
+        cs1_rows = []
+        bal, inc = cs1_curr_sav, cs1_income
+        for yr in range(1, cs1_years + 1):
+            contrib = inc * cs1_savings_r
+            inv_r   = bal * cs1_ret
+            bal     = bal + contrib + inv_r
+            inc    *= (1 + cs1_inc_g)
+            cs1_rows.append({"Age": 45 + yr, "Balance": bal, "Contribution": contrib, "Return": inv_r})
+        cs1_df = pd.DataFrame(cs1_rows)
+
+        fig_cs1 = go.Figure()
+        fig_cs1.add_trace(go.Scatter(x=cs1_df["Age"], y=cs1_df["Balance"], name="Projected Balance",
+            line=dict(color=GOLD, width=3), fill="tozeroy", fillcolor="rgba(255,215,0,0.07)"))
+        fig_cs1.add_hline(y=cs1_target, line_dash="dash", line_color=RED,
+            annotation_text="₹2 Cr Target", annotation_font_color=RED)
+        fig_cs1.update_layout(**base_layout("Rajan's Wealth Accumulation (Age 45 → 62)", h=320))
+        fig_cs1.update_yaxes(tickformat=".2s", title="Portfolio Value (₹)")
+        st.plotly_chart(fig_cs1, use_container_width=True)
+
+        insight_box("""
+        Rajan's situation demonstrates the <b>cost of delay</b>. Had he started at 30 with the same savings rate,
+        he would need only ₹8,500/month to reach ₹2 Cr. Starting at 45, he needs ₹45,000/month — <b>5× more</b>.
+        This is the compounding penalty — often called the "cost of waiting."
+        """)
+
+        st.markdown("#### 📊 Sensitivity — Required Savings Rate to Hit ₹2 Cr")
+        ret_vals = [0.08, 0.10, 0.12, 0.14]
+        sr_vals  = np.arange(0.10, 0.51, 0.05)
+        fig_s1 = go.Figure()
+        colors_s = [RED, GOLD, GRN, LB]
+        for ret_v, col_v in zip(ret_vals, colors_s):
+            projected_v = [cs1_curr_sav*(1+ret_v)**cs1_years +
+                           fv_growing_annuity(cs1_income*sr, cs1_inc_g, ret_v, cs1_years)
+                           for sr in sr_vals]
+            fig_s1.add_trace(go.Scatter(x=sr_vals*100, y=projected_v,
+                name=f"Return={ret_v*100:.0f}%", line=dict(color=col_v, width=2)))
+        fig_s1.add_hline(y=cs1_target, line_dash="dot", line_color="white",
+                         annotation_text="₹2 Cr Target", annotation_font_color="white")
+        fig_s1.update_layout(**base_layout("Savings Rate vs Projected Corpus (₹)", h=300))
+        fig_s1.update_yaxes(tickformat=".2s")
+        fig_s1.update_xaxes(title="Savings Rate (%)")
+        st.plotly_chart(fig_s1, use_container_width=True)
+
+        lesson_box("""
+        Every year of delay roughly requires <b>doubling your savings rate</b> to compensate. 
+        The solution for late starters: maximize ELSS, NPS, PPF simultaneously, and consider working 
+        2–3 extra years — each extra year adds both accumulation time AND removes one retirement year.
+        """)
+
+    # ── CASE 2 · THE EARLY BIRD ───────────────────────────────────────────────
+    with cs_tabs[1]:
+        case_card(
+            "Priya Sharma — The Early Bird",
+            "Age 24 · Software Engineer · ₹9L CTC · ₹50K savings so far · Goal: Retire at 50 with ₹5 Crore",
+            color="rgba(0,77,0,0.6)"
+        )
+        st.markdown("""
+        **Situation:** Priya just started her career and wants to retire by 50 — a **FIRE** (Financial Independence, 
+        Retire Early) goal. She has 26 years. Can disciplined saving starting early create extraordinary wealth?
+        """)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            cs2_inc    = st.number_input("Starting Annual Income (₹)", 300000, 5000000, 900000, 50000, key="cs2_inc")
+            cs2_sr     = st.slider("Savings Rate (%)", 10, 60, 35, 5, key="cs2_sr") / 100
+            cs2_ig     = st.slider("Income Growth (%) — career progression", 5.0, 20.0, 12.0, 1.0, key="cs2_ig") / 100
+            cs2_ret    = st.slider("Investment Return (%)", 8.0, 18.0, 13.0, 0.5, key="cs2_ret") / 100
+            cs2_infl   = st.slider("Inflation (%)", 3.0, 9.0, 6.0, 0.5, key="cs2_inf") / 100
+            cs2_yrs    = 50 - 24  # 26 years
+            cs2_target = st.number_input("FIRE Target Corpus (₹)", 1000000, 100000000, 50000000, 1000000, key="cs2_tgt")
+
+        cs2_fv_curr = 50000 * (1 + cs2_ret) ** cs2_yrs
+        cs2_fv_cont = fv_growing_annuity(cs2_inc * cs2_sr, cs2_ig, cs2_ret, cs2_yrs)
+        cs2_proj    = cs2_fv_curr + cs2_fv_cont
+
+        with col2:
+            funded2 = cs2_proj >= cs2_target
+            # 4% rule: how much can she withdraw at 50?
+            annual_wd_4pct = cs2_proj * 0.04
+            monthly_wd_4pct= annual_wd_4pct / 12
+            st.markdown(f"""
+            <div style="background:rgba(0,77,0,0.4);border:1px solid rgba(255,215,0,0.3);
+                border-radius:12px;padding:20px;text-align:center;margin-top:8px;">
+            <div style="color:#8892b0;font-size:0.75rem;text-transform:uppercase;">Corpus at Age 50</div>
+            <div style="font-family:'Playfair Display';font-size:2.2rem;color:#FFD700;margin:8px 0;">
+                ₹{cs2_proj/1e7:.2f} Cr</div>
+            <div style="color:{'#28a745' if funded2 else '#dc3545'};font-size:0.85rem;font-weight:600;">
+                {'✅ FIRE Goal Achieved!' if funded2 else f'❌ Short by ₹{(cs2_target-cs2_proj)/1e7:.2f} Cr'}</div>
+            <hr style="border-color:rgba(255,215,0,0.15);margin:10px 0;">
+            <div style="font-size:0.78rem;color:#ADD8E6;"><b>4% Rule Annual Withdrawal:</b> ₹{annual_wd_4pct/1e5:.1f}L</div>
+            <div style="font-size:0.78rem;color:#ADD8E6;"><b>Monthly Income @ FIRE:</b> ₹{monthly_wd_4pct/1000:.1f}K</div>
+            <div style="font-size:0.78rem;color:#8892b0;">Compounding: {cs2_yrs} years of growth</div>
+            </div>""", unsafe_allow_html=True)
+
+        # Early vs Late comparison chart
+        ages_early = list(range(24, 51))
+        bal_e, inc_e = 50000, cs2_inc
+        bal_early = []
+        for yr in range(26):
+            bal_e = bal_e * (1 + cs2_ret) + inc_e * cs2_sr
+            inc_e *= (1 + cs2_ig)
+            bal_early.append(bal_e)
+
+        ages_late = list(range(35, 51))
+        bal_l, inc_l = 50000, cs2_inc * (1 + cs2_ig) ** 11
+        bal_late = []
+        for yr in range(15):
+            bal_l = bal_l * (1 + cs2_ret) + inc_l * cs2_sr
+            inc_l *= (1 + cs2_ig)
+            bal_late.append(bal_l)
+
+        fig_cs2 = go.Figure()
+        fig_cs2.add_trace(go.Scatter(x=ages_early, y=bal_early, name="Starts at 24",
+            line=dict(color=GRN, width=3), fill="tozeroy", fillcolor="rgba(40,167,69,0.08)"))
+        fig_cs2.add_trace(go.Scatter(x=ages_late, y=bal_late, name="Starts at 35",
+            line=dict(color=RED, width=2, dash="dash")))
+        fig_cs2.add_hline(y=cs2_target, line_dash="dot", line_color=GOLD,
+            annotation_text="FIRE Target", annotation_font_color=GOLD)
+        fig_cs2.update_layout(**base_layout("Early vs Late Starter — Wealth at Each Age", h=330))
+        fig_cs2.update_yaxes(tickformat=".2s", title="Portfolio Value (₹)")
+        st.plotly_chart(fig_cs2, use_container_width=True)
+
+        # Power of compounding breakdown
+        total_invested = sum(cs2_inc * cs2_sr * (1 + cs2_ig)**yr for yr in range(cs2_yrs))
+        invest_gain    = cs2_proj - total_invested if cs2_proj > total_invested else 0
+        fig_donut = go.Figure(go.Pie(
+            labels=["Total Contributed", "Investment Gains (Compounding Power)"],
+            values=[max(0, total_invested), invest_gain],
+            marker=dict(colors=[LB, GOLD]),
+            hole=0.6, textfont=dict(size=11, color="white")
+        ))
+        fig_donut.add_annotation(text=f"₹{cs2_proj/1e7:.1f}Cr<br>Total",
+            x=0.5, y=0.5, font=dict(size=12, color=GOLD, family="Playfair Display"), showarrow=False)
+        fig_donut.update_layout(**base_layout("Where Does the Wealth Come From?", h=300))
+        fig_donut.update_layout(showlegend=True, legend=dict(orientation="h", y=-0.15))
+        st.plotly_chart(fig_donut, use_container_width=True)
+
+        insight_box("""
+        Priya's 26-year head start means <b>investment gains can exceed her lifetime contributions by 3–5×</b>. 
+        This is Einstein's "eighth wonder" — compound interest. Each rupee saved at 24 becomes ₹25+ by 50 at 13% return.
+        At 35, the same rupee becomes only ₹5.
+        """)
+        lesson_box("""
+        FIRE requires two things: a <b>high savings rate (30–50%)</b> AND disciplined equity allocation for inflation-beating returns. 
+        Index funds (Nifty 50, global ETFs) in a long accumulation phase minimize costs and maximize compounding.
+        """)
+
+    # ── CASE 3 · DUAL-INCOME COUPLE ──────────────────────────────────────────
+    with cs_tabs[2]:
+        case_card(
+            "Vikram & Deepa Nair — Dual-Income Couple",
+            "Ages 38 & 36 · Combined income ₹42L · Separate EPF/NPS · Retire together at 60 · Target ₹6 Crore combined",
+            color="rgba(0,51,100,0.7)"
+        )
+        st.markdown("""
+        **Situation:** Vikram (₹25L) and Deepa (₹17L) both contribute to retirement separately. 
+        Vikram has EPF of ₹8L; Deepa has NPS of ₹4L. How does coordinating their retirement 
+        strategy optimize their combined corpus?
+        """)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**👨 Vikram's Profile**")
+            v_inc   = st.number_input("Vikram's Income (₹)", 500000, 20000000, 2500000, 100000, key="v_inc")
+            v_sr    = st.slider("Vikram's Savings Rate (%)", 5, 50, 25, 5, key="v_sr") / 100
+            v_ret   = st.slider("Vikram's Return (%)", 6.0, 16.0, 10.0, 0.5, key="v_ret") / 100
+            v_curr  = st.number_input("Vikram's Current Savings (₹)", 0, 20000000, 800000, 100000, key="v_curr")
+            v_yrs   = 60 - 38
+
+        with col2:
+            st.markdown("**👩 Deepa's Profile**")
+            d_inc   = st.number_input("Deepa's Income (₹)", 500000, 20000000, 1700000, 100000, key="d_inc")
+            d_sr    = st.slider("Deepa's Savings Rate (%)", 5, 50, 30, 5, key="d_sr") / 100
+            d_ret   = st.slider("Deepa's Return (%)", 6.0, 16.0, 12.0, 0.5, key="d_ret") / 100
+            d_curr  = st.number_input("Deepa's Current Savings (₹)", 0, 20000000, 400000, 100000, key="d_curr")
+            d_yrs   = 60 - 36
+
+        v_proj = v_curr * (1+v_ret)**v_yrs + fv_growing_annuity(v_inc*v_sr, 0.06, v_ret, v_yrs)
+        d_proj = d_curr * (1+d_ret)**d_yrs + fv_growing_annuity(d_inc*d_sr, 0.06, d_ret, d_yrs)
+        combined = v_proj + d_proj
+        target3  = 60000000
+
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Vikram's Corpus", f"₹{v_proj/1e7:.2f}Cr")
+        m2.metric("Deepa's Corpus", f"₹{d_proj/1e7:.2f}Cr")
+        m3.metric("Combined Corpus", f"₹{combined/1e7:.2f}Cr",
+                  delta=f"{'✅ Above' if combined>=target3 else '❌ Below'} ₹6Cr target")
+        m4.metric("Funding Ratio", f"{combined/target3*100:.1f}%")
+
+        # Timeline comparison
+        ages_v = list(range(38, 61))
+        ages_d = list(range(36, 61))
+        bal_v, bal_d = v_curr, d_curr
+        inc_v, inc_d = v_inc, d_inc
+        bals_v, bals_d = [], []
+        for yr in range(22):
+            bal_v = bal_v*(1+v_ret) + inc_v*v_sr; inc_v*=1.06
+            bal_d = bal_d*(1+d_ret) + inc_d*d_sr; inc_d*=1.06
+            bals_v.append(bal_v)
+            bals_d.append(bal_d)
+
+        fig_cs3 = go.Figure()
+        fig_cs3.add_trace(go.Scatter(x=ages_v[:len(bals_v)], y=bals_v, name="Vikram", line=dict(color=LB, width=2.5)))
+        fig_cs3.add_trace(go.Scatter(x=ages_d[:len(bals_d)], y=bals_d, name="Deepa", line=dict(color=GOLD, width=2.5)))
+        combined_by_yr = [a+b for a,b in zip(bals_v, bals_d)]
+        fig_cs3.add_trace(go.Scatter(x=ages_v[:len(combined_by_yr)], y=combined_by_yr,
+            name="Combined", line=dict(color=GRN, width=3, dash="dot"),
+            fill="tozeroy", fillcolor="rgba(40,167,69,0.05)"))
+        fig_cs3.add_hline(y=target3, line_dash="dash", line_color=RED, annotation_text="₹6 Cr Target")
+        fig_cs3.update_layout(**base_layout("Vikram & Deepa — Wealth Trajectories", h=340))
+        fig_cs3.update_yaxes(tickformat=".2s", title="Portfolio Value (₹)")
+        st.plotly_chart(fig_cs3, use_container_width=True)
+
+        st.markdown("#### 🔄 Asset Allocation Optimization for Couples")
+        st.markdown("""
+        | Strategy | Vikram (Older, 38) | Deepa (Younger, 36) | Rationale |
+        |---|---|---|---|
+        | **Equity Allocation** | 60% | 75% | Deepa has 2 more years — higher risk capacity |
+        | **Debt Allocation** | 30% | 20% | EPF counts as debt; balance in bonds |
+        | **Alternative** | 10% | 5% | REITs, Gold for diversification |
+        | **Key Vehicle** | EPF + PPF | NPS Tier-I + ELSS | Tax-optimized per profile |
+        """)
+
+        insight_box("""
+        Dual-income couples benefit from <b>asset location arbitrage</b>: one partner can hold equity-heavy 
+        instruments while the other holds debt — combined the portfolio is balanced, but each benefits from 
+        optimal tax treatment. EPF (debt) + ELSS (equity) + NPS is a powerful tax-efficient trio.
+        """)
+        lesson_box("""
+        A couple's retirement plan should be treated as <b>one portfolio, two contributors</b>. 
+        Coordinate asset allocation, not just savings rates. The younger spouse should carry more equity risk. 
+        Never optimize each person's portfolio in isolation.
+        """)
+
+    # ── CASE 4 · INFLATION SHOCK ──────────────────────────────────────────────
+    with cs_tabs[3]:
+        case_card(
+            "The Inflation Shock Scenario",
+            "Retiree Radhakrishnan, 65 · ₹50L corpus · Planned 5% return · Actual inflation: surges to 9% for 5 years",
+            color="rgba(100,20,0,0.6)"
+        )
+        st.markdown("""
+        **Situation:** Radhakrishnan retired at 65 with ₹50 lakhs, planning to withdraw ₹3L/year (inflation-adjusted at 6%).
+        Post-retirement, India experiences an inflation surge to 9% for 5 years. How does this derail the plan?
+        This case shows why <b>sequence-of-returns and inflation risk</b> are the biggest threats in retirement.
+        """)
+
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            cs4_corpus  = st.number_input("Starting Corpus (₹)", 1000000, 20000000, 5000000, 500000, key="cs4_c")
+            cs4_wd1     = st.number_input("Year-1 Withdrawal (₹)", 50000, 2000000, 300000, 25000, key="cs4_w")
+            cs4_ret     = st.slider("Post-Ret Investment Return (%)", 4.0, 12.0, 7.0, 0.5, key="cs4_r") / 100
+            cs4_normal_infl = st.slider("Normal Inflation (%)", 3.0, 8.0, 6.0, 0.5, key="cs4_ni") / 100
+            cs4_shock_infl  = st.slider("Shock Inflation (%) — Years 1–5", 5.0, 15.0, 9.0, 0.5, key="cs4_si") / 100
+            cs4_yrs         = st.slider("Retirement Duration (years)", 10, 35, 25, 1, key="cs4_y")
+
+        # Two scenarios: base vs shock
+        def simulate_retirement(corpus, wd1, ret, infl_schedule):
+            rows, bal, wd = [], corpus, wd1
+            for yr, infl in enumerate(infl_schedule, 1):
+                inv_r  = (bal - wd/2) * ret
+                end_b  = max(0, bal + inv_r - wd)
+                rows.append({"Year": yr, "Age": 64+yr, "Balance": end_b,
+                             "Withdrawal": wd, "Inflation": infl*100})
+                bal = end_b
+                wd  = wd * (1 + infl)
+                if bal <= 0:
+                    for remaining in range(yr+1, len(infl_schedule)+1):
+                        rows.append({"Year": remaining, "Age": 64+remaining, "Balance": 0,
+                                     "Withdrawal": wd, "Inflation": infl_schedule[remaining-1]*100})
+                    break
+            return pd.DataFrame(rows)
+
+        base_schedule  = [cs4_normal_infl] * cs4_yrs
+        shock_schedule = [cs4_shock_infl]*5 + [cs4_normal_infl]*(cs4_yrs-5)
+
+        df_base  = simulate_retirement(cs4_corpus, cs4_wd1, cs4_ret, base_schedule)
+        df_shock = simulate_retirement(cs4_corpus, cs4_wd1, cs4_ret, shock_schedule)
+
+        with col2:
+            depletes_base  = (df_base["Balance"] == 0).any()
+            depletes_shock = (df_shock["Balance"] == 0).any()
+
+            m1, m2 = st.columns(2)
+            m1.metric("Final Balance (Base)", f"₹{df_base['Balance'].iloc[-1]/1e5:.1f}L",
+                      delta="✅ Funds Intact" if not depletes_base else "❌ Depleted")
+            m2.metric("Final Balance (Inflation Shock)", f"₹{df_shock['Balance'].iloc[-1]/1e5:.1f}L",
+                      delta="⚠️ Shock Impact" if depletes_shock else "✅ Survives",
+                      delta_color="inverse" if depletes_shock else "normal")
+
+        fig_cs4 = go.Figure()
+        fig_cs4.add_trace(go.Scatter(x=df_base["Age"], y=df_base["Balance"],
+            name=f"Normal Inflation ({cs4_normal_infl*100:.0f}%)", line=dict(color=GRN, width=2.5)))
+        fig_cs4.add_trace(go.Scatter(x=df_shock["Age"], y=df_shock["Balance"],
+            name=f"Shock Inflation ({cs4_shock_infl*100:.0f}% for 5yr)", line=dict(color=RED, width=2.5, dash="dash"),
+            fill="tonexty", fillcolor="rgba(220,53,69,0.06)"))
+        fig_cs4.add_vrect(x0=65, x1=70, fillcolor="rgba(220,53,69,0.08)", line_width=0,
+                          annotation_text="High Inflation Period", annotation_position="top left",
+                          annotation_font_color=RED)
+        fig_cs4.update_layout(**base_layout("Corpus Depletion — Normal vs Inflation Shock", h=340))
+        fig_cs4.update_yaxes(tickformat=".2s", title="Portfolio Balance (₹)")
+        st.plotly_chart(fig_cs4, use_container_width=True)
+
+        # Withdrawal escalation
+        fig_wd = go.Figure()
+        fig_wd.add_trace(go.Bar(x=df_base["Age"], y=df_base["Withdrawal"],
+            name="Normal Withdrawal", marker_color="rgba(40,167,69,0.6)"))
+        fig_wd.add_trace(go.Bar(x=df_shock["Age"], y=df_shock["Withdrawal"],
+            name="Shock Withdrawal", marker_color="rgba(220,53,69,0.6)"))
+        fig_wd.update_layout(**base_layout("Annual Withdrawal Escalation: Normal vs Shock", h=280),
+            barmode="group")
+        fig_wd.update_yaxes(tickformat=".2s")
+        st.plotly_chart(fig_wd, use_container_width=True)
+
+        warning_box("""
+        A 3% difference in inflation (6% → 9%) over just 5 years can reduce a retiree's corpus longevity by 
+        <b>8–12 years</b>. Withdrawals compound faster than expected, creating a "death spiral" where falling 
+        balance earns less, while rising withdrawals accelerate depletion.
+        """)
+        insight_box("""
+        <b>Inflation hedges for retirees:</b><br>
+        • Maintain 20–30% in equity even in retirement (reduces sequence risk)<br>
+        • Hold Sovereign Gold Bonds (SGB) — gold historically beats inflation<br>
+        • TIPS equivalent: RBI Inflation-Indexed Bonds<br>
+        • Bucket strategy: Keep 3 years' expenses in liquid/debt, rest in equity
+        """)
+        lesson_box("""
+        Never model retirement on a single inflation assumption. Always stress-test with inflation 2–3% above 
+        your baseline. The 4% safe withdrawal rule was derived for US markets — for India, use 3–3.5% to account 
+        for higher structural inflation.
+        """)
+
+    # ── CASE 5 · THE ENTREPRENEUR ────────────────────────────────────────────
+    with cs_tabs[4]:
+        case_card(
+            "Anita Desai — The Entrepreneur",
+            "Age 40 · Founder of a growing startup · Irregular income · No EPF/NPS · Equity stake in business",
+            color="rgba(30,0,60,0.7)"
+        )
+        st.markdown("""
+        **Situation:** Anita runs a profitable startup valued at ₹3 Crore (she owns 60%). Her personal income 
+        is irregular — ranging ₹8L to ₹30L annually. She has no formal retirement savings but has been reinvesting 
+        in her business. At 40, she must now plan retirement at 58. How should an entrepreneur structure retirement?
+        """)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            cs5_biz_val   = st.number_input("Business Valuation (₹)", 5000000, 500000000, 30000000, 1000000, key="cs5_bv")
+            cs5_stake     = st.slider("Founder's Equity Stake (%)", 20, 100, 60, 5, key="cs5_sk") / 100
+            cs5_biz_grow  = st.slider("Business Growth Rate (%) p.a.", 5.0, 40.0, 20.0, 5.0, key="cs5_bg") / 100
+            cs5_exit_mult = st.slider("Exit Multiple (EV/Revenue or P/E)", 2, 15, 6, 1, key="cs5_em")
+            cs5_avg_inc   = st.number_input("Average Annual Personal Income (₹)", 500000, 10000000, 1500000, 100000, key="cs5_ai")
+            cs5_sr        = st.slider("Personal Savings Rate (%)", 5, 60, 25, 5, key="cs5_sr") / 100
+            cs5_ret_inv   = st.slider("Personal Investment Return (%)", 6.0, 16.0, 11.0, 0.5, key="cs5_ri") / 100
+            cs5_yrs       = 58 - 40
+
+        # Two wealth streams
+        # Stream 1: Business exit value
+        biz_stake_val  = cs5_biz_val * cs5_stake
+        biz_exit_val   = biz_stake_val * (1 + cs5_biz_grow) ** cs5_yrs * cs5_exit_mult / cs5_exit_mult  # growth only
+        biz_future_val = biz_stake_val * (1 + cs5_biz_grow) ** cs5_yrs
+        # Stream 2: Personal savings
+        personal_corp  = fv_growing_annuity(cs5_avg_inc * cs5_sr, 0.05, cs5_ret_inv, cs5_yrs)
+        total_net_worth = biz_future_val + personal_corp
+
+        with col2:
+            st.markdown(f"""
+            <div style="background:rgba(30,0,60,0.5);border:1px solid rgba(255,215,0,0.35);
+                border-radius:12px;padding:20px;margin-top:8px;">
+            <div style="color:#8892b0;font-size:0.72rem;text-transform:uppercase;margin-bottom:12px;">
+                Wealth at Age 58 — Two Streams</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div style="background:rgba(255,215,0,0.1);border-radius:8px;padding:10px;text-align:center;">
+                <div style="color:#8892b0;font-size:0.7rem;">Business Value</div>
+                <div style="font-family:'Playfair Display';font-size:1.4rem;color:#FFD700;">₹{biz_future_val/1e7:.1f}Cr</div>
+                <div style="font-size:0.68rem;color:#8892b0;">Stake: {cs5_stake*100:.0f}% of biz</div>
+              </div>
+              <div style="background:rgba(40,167,69,0.1);border-radius:8px;padding:10px;text-align:center;">
+                <div style="color:#8892b0;font-size:0.7rem;">Personal Savings</div>
+                <div style="font-family:'Playfair Display';font-size:1.4rem;color:#28a745;">₹{personal_corp/1e7:.1f}Cr</div>
+                <div style="font-size:0.68rem;color:#8892b0;">₹{cs5_avg_inc*cs5_sr/1000:.0f}K/yr saved</div>
+              </div>
+            </div>
+            <div style="text-align:center;margin-top:14px;">
+              <div style="color:#8892b0;font-size:0.72rem;">Combined Net Worth</div>
+              <div style="font-family:'Playfair Display';font-size:2rem;color:#FFD700;">₹{total_net_worth/1e7:.2f} Cr</div>
+              <div style="font-size:0.72rem;color:#ADD8E6;">Business = {biz_future_val/total_net_worth*100:.0f}% of wealth</div>
+            </div>
+            </div>""", unsafe_allow_html=True)
+
+        # Business vs Personal savings over time
+        yr_range = list(range(1, cs5_yrs + 1))
+        biz_vals  = [biz_stake_val * (1 + cs5_biz_grow)**yr for yr in yr_range]
+        pers_vals = []
+        bal_p, inc_p = 0, cs5_avg_inc
+        for yr in yr_range:
+            bal_p = bal_p*(1+cs5_ret_inv) + inc_p*cs5_sr
+            inc_p *= 1.05
+            pers_vals.append(bal_p)
+        ages_cs5  = [40 + yr for yr in yr_range]
+        combined5 = [b+p for b,p in zip(biz_vals, pers_vals)]
+
+        fig_cs5 = go.Figure()
+        fig_cs5.add_trace(go.Bar(x=ages_cs5, y=biz_vals, name="Business Stake Value",
+            marker_color="rgba(255,215,0,0.6)"))
+        fig_cs5.add_trace(go.Bar(x=ages_cs5, y=pers_vals, name="Personal Savings",
+            marker_color="rgba(40,167,69,0.6)"))
+        fig_cs5.add_trace(go.Scatter(x=ages_cs5, y=combined5, name="Total Net Worth",
+            line=dict(color=LB, width=2.5)))
+        fig_cs5.update_layout(**base_layout("Anita's Wealth — Business + Personal Savings", h=330),
+            barmode="stack")
+        fig_cs5.update_yaxes(tickformat=".2s", title="Value (₹)")
+        st.plotly_chart(fig_cs5, use_container_width=True)
+
+        st.markdown("#### 🏦 Retirement Vehicles for Entrepreneurs")
+        st.markdown("""
+        | Vehicle | Annual Limit | Tax Benefit | Best For |
+        |---|---|---|---|
+        | **NPS (Tier-I + Tier-II)** | No limit on Tier-II | 80C + 80CCD(1B) — ₹2L deduction | Disciplined pension |
+        | **PPF** | ₹1.5L | 80C — EEE status | Debt allocation, tax-free |
+        | **ELSS Mutual Funds** | No limit | 80C — 3-yr lock | Equity growth |
+        | **REITs / InvITs** | No limit | Dividend + appreciation | Passive income |
+        | **Sovereign Gold Bonds** | 4 kg/year | Tax-free on maturity | Inflation hedge |
+        | **Self-employed NPS** | Up to 20% of income | Additional 10% NPS deduction | High deduction |
+        """)
+
+        warning_box("""
+        <b>Concentration Risk:</b> Having 70–80% of wealth in one business is extremely high risk. 
+        Even a thriving business can face disruption, regulatory changes, or key-person risk. 
+        Entrepreneurs MUST build a parallel financial portfolio independent of their business.
+        """)
+        lesson_box("""
+        For entrepreneurs: treat your salary or director's remuneration as "investor's income" and 
+        automate savings before you reinvest in the business. Build a <b>"financial independence fund"</b> 
+        — separate from business — that covers basic living costs. The business is the upside; the FI fund is the floor.
+        """)
+
+# ───────────────────────────────────────
+# TAB 9 – BEHAVIOURAL FINANCE
+# ───────────────────────────────────────
+with tab9:
+    st.markdown("### ⚖️ Behavioural Finance & Retirement Decisions")
+    st.caption("How cognitive biases derail even the best retirement plans — and what to do about it.")
+
+    bf_tabs = st.tabs([
+        "🧠 Key Biases", "📉 The Cost of Panic Selling", "⏰ Hyperbolic Discounting", "🎯 Debiasing Strategies"
+    ])
+
+    with bf_tabs[0]:
+        st.markdown("#### Common Behavioural Biases in Retirement Planning")
+        biases = [
+            ("Present Bias", "Valuing immediate rewards over future benefits",
+             "Skipping SIP this month to buy a new phone — seems small but repeated over a career, devastating.",
+             "Automate SIPs. You can't spend what you never see. Set up auto-debit on salary day."),
+            ("Loss Aversion", "Losses feel 2–2.5× more painful than equivalent gains feel good (Kahneman & Tversky)",
+             "Exiting equity after a 15% market fall, locking in losses, then missing the recovery.",
+             "Pre-commit to a rebalancing rule. Never check portfolio value more than quarterly."),
+            ("Overconfidence Bias", "Believing you can time the market or pick winning stocks consistently",
+             "Abandoning index funds for direct stocks/crypto, underperforming a simple Nifty 50 SIP.",
+             "Track your actual return vs benchmark annually. Data humbles overconfidence."),
+            ("Anchoring", "Over-weighting the first piece of information received",
+             "Anchoring to the price you paid for a stock; refusing to sell even as fundamentals deteriorate.",
+             "Use forward-looking metrics (PE, growth rate) — not your purchase price — for sell decisions."),
+            ("Status Quo Bias", "Preferring the current state even when change is better",
+             "Never increasing SIP amount despite salary raises — your savings rate shrinks in real terms.",
+             "'SIP Step-up': increase SIP by 10% every year automatically. Don't rely on willpower."),
+            ("Mental Accounting", "Treating money differently based on its source or label",
+             "Spending an annual bonus entirely on lifestyle while struggling with monthly retirement savings.",
+             "Pre-commit: 50% of every bonus/windfall goes directly to retirement. No exceptions."),
+            ("Recency Bias", "Overweighting recent events in future predictions",
+             "Expecting 30% returns every year because markets did well last 2 years. Or panic at every correction.",
+             "Read historical return data: Nifty 50 CAGR over 20+ years is ~12–13%. Use this as your base."),
+            ("Herd Behaviour", "Following the crowd — buying what everyone is buying",
+             "Investing in NFO bubbles, thematic funds, or 'hot' sectors at peak valuations.",
+             "When everyone is buying, valuation is highest. Be greedy when others are fearful (Buffett)."),
+        ]
+
+        for bname, definition, example, solution in biases:
+            with st.expander(f"🧩 {bname}"):
+                col1, col2 = st.columns([1, 2])
+                with col1:
+                    st.markdown(f"""
+                    <div style="background:rgba(0,51,102,0.5);border-radius:10px;padding:14px;margin-bottom:10px;">
+                    <div style="color:#FFD700;font-weight:600;margin-bottom:6px;">Definition</div>
+                    <div style="font-size:0.82rem;color:#e6f1ff;line-height:1.6;">{definition}</div>
+                    </div>""", unsafe_allow_html=True)
+                with col2:
+                    st.markdown(f"""
+                    <div style="background:rgba(220,53,69,0.1);border-left:3px solid #dc3545;border-radius:0 10px 10px 0;
+                        padding:12px;margin-bottom:8px;">
+                    <div style="color:#dc3545;font-size:0.75rem;font-weight:600;margin-bottom:4px;">REAL-WORLD EXAMPLE</div>
+                    <div style="font-size:0.8rem;color:#e6f1ff;line-height:1.6;">{example}</div>
+                    </div>
+                    <div style="background:rgba(40,167,69,0.1);border-left:3px solid #28a745;border-radius:0 10px 10px 0;
+                        padding:12px;">
+                    <div style="color:#28a745;font-size:0.75rem;font-weight:600;margin-bottom:4px;">SOLUTION</div>
+                    <div style="font-size:0.8rem;color:#e6f1ff;line-height:1.6;">{solution}</div>
+                    </div>""", unsafe_allow_html=True)
+
+    with bf_tabs[1]:
+        st.markdown("#### 📉 The Catastrophic Cost of Panic Selling")
+        st.markdown("Simulates what happens when an investor exits the market during corrections vs. staying invested.")
+
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            bf_initial = st.number_input("Initial Investment (₹)", 10000, 10000000, 1000000, 50000, key="bf_init")
+            bf_sip     = st.number_input("Monthly SIP (₹)", 0, 500000, 10000, 1000, key="bf_sip")
+            bf_years   = st.slider("Investment Horizon (years)", 5, 40, 20, 1, key="bf_yr")
+            bf_ret     = st.slider("Market Annual Return (%)", 8.0, 18.0, 13.0, 0.5, key="bf_ret") / 100
+            bf_miss    = st.slider("Best Days Missed (panic selling)", 0, 30, 10, 5, key="bf_miss")
+
+        # Stay invested vs miss best N days
+        # Approximate: missing N best days reduces annualized return significantly
+        # Real data: Missing 10 best days in 20 years costs ~4% p.a.
+        penalty_per_day = 0.004  # ~0.4% per missed day (empirically derived from BSE data)
+        bf_ret_miss = max(0.01, bf_ret - bf_miss * penalty_per_day)
+
+        months_total   = bf_years * 12
+        r_mo_stay      = bf_ret / 12
+        r_mo_miss      = bf_ret_miss / 12
+
+        def simulate_sip(initial, sip, r_mo, months):
+            bal = initial
+            for _ in range(months):
+                bal = bal * (1 + r_mo) + sip
+            return bal
+
+        val_stay = simulate_sip(bf_initial, bf_sip, r_mo_stay, months_total)
+        val_miss = simulate_sip(bf_initial, bf_sip, r_mo_miss, months_total)
+        cost_of_panic = val_stay - val_miss
+
+        with col2:
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Stay Invested", f"₹{val_stay/1e7:.2f}Cr")
+            m2.metric(f"Miss {bf_miss} Best Days", f"₹{val_miss/1e7:.2f}Cr")
+            m3.metric("Cost of Panic", f"₹{cost_of_panic/1e5:.1f}L",
+                      delta=f"-{cost_of_panic/val_stay*100:.1f}% of wealth",
+                      delta_color="inverse")
+
+        # Growth chart
+        yrs = list(range(1, bf_years + 1))
+        vals_stay_yr = [simulate_sip(bf_initial, bf_sip, r_mo_stay, y*12) for y in yrs]
+        vals_miss_yr = [simulate_sip(bf_initial, bf_sip, r_mo_miss, y*12) for y in yrs]
+
+        fig_bf = go.Figure()
+        fig_bf.add_trace(go.Scatter(x=yrs, y=vals_stay_yr, name="Stay Invested",
+            line=dict(color=GRN, width=3), fill="tozeroy", fillcolor="rgba(40,167,69,0.06)"))
+        fig_bf.add_trace(go.Scatter(x=yrs, y=vals_miss_yr, name=f"Miss {bf_miss} Best Days",
+            line=dict(color=RED, width=2.5, dash="dash")))
+        fig_bf.update_layout(**base_layout(f"Wealth Impact of Missing the {bf_miss} Best Market Days", h=340))
+        fig_bf.update_yaxes(tickformat=".2s", title="Portfolio Value (₹)")
+        fig_bf.update_xaxes(title="Years")
+        st.plotly_chart(fig_bf, use_container_width=True)
+
+        insight_box("""
+        BSE Sensex data shows: <b>missing just 10 best trading days in 20 years</b> reduces your final 
+        corpus by 30–40%. These best days often come within 2 weeks of the worst days — panic sellers miss both 
+        the crash and the recovery. Time IN the market beats timing the market — every time.
+        """)
+
+    with bf_tabs[2]:
+        st.markdown("#### ⏰ Hyperbolic Discounting — Why We Procrastinate on Saving")
+        st.markdown("""
+        Hyperbolic discounting means we value today far more than the future — and tomorrow becomes 
+        "today" when it arrives, so we keep delaying. This creates the **procrastination trap** in retirement planning.
+        """)
+
+        delay_years = st.slider("Years of delay before starting SIP", 0, 20, 5, 1)
+        monthly_sip = st.number_input("Monthly SIP Amount (₹)", 1000, 500000, 10000, 1000, key="hd_sip")
+        hd_ret      = st.slider("Annual Return (%)", 8.0, 18.0, 12.0, 1.0, key="hd_ret") / 100
+        hd_years    = st.slider("Total Investment Horizon (years from today)", 10, 40, 30, 1, key="hd_yr")
+
+        def sip_fv(sip, r_annual, years):
+            r_mo = r_annual / 12
+            return sip * ((1+r_mo)**(years*12) - 1) / r_mo * (1+r_mo)
+
+        vals_by_delay = [sip_fv(monthly_sip, hd_ret, max(0, hd_years - d)) for d in range(0, 21)]
+        opportunity_cost = vals_by_delay[0] - vals_by_delay[delay_years]
+
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Start Today", f"₹{vals_by_delay[0]/1e7:.2f}Cr")
+        m2.metric(f"Start After {delay_years} Years", f"₹{vals_by_delay[delay_years]/1e7:.2f}Cr")
+        m3.metric("Opportunity Cost of Delay", f"₹{opportunity_cost/1e5:.1f}L",
+                  delta=f"-{opportunity_cost/vals_by_delay[0]*100:.1f}%", delta_color="inverse")
+
+        fig_hd = go.Figure()
+        fig_hd.add_trace(go.Bar(x=list(range(0, 21)), y=vals_by_delay,
+            marker=dict(color=[GRN if i==0 else (RED if i==delay_years else GOLD)
+                               for i in range(21)]),
+            text=[f"₹{v/1e7:.1f}Cr" for v in vals_by_delay],
+            textposition="outside", textfont=dict(size=8, color="#e6f1ff")))
+        fig_hd.update_layout(**base_layout("Final Corpus by Years of Delay", h=320),
+            xaxis_extra=dict(title="Years Delayed Before Starting SIP"))
+        fig_hd.update_yaxes(tickformat=".2s", title="Final Corpus (₹)")
+        st.plotly_chart(fig_hd, use_container_width=True)
+
+        insight_box("""
+        Each year of delay compounds against you. A 5-year delay on a ₹10K SIP at 12% for 30 years 
+        costs approximately <b>₹50–70 lakhs</b> in lost wealth. The cost of "I'll start next year" 
+        is not one year — it's the compounding of that delay across the entire horizon.
+        """)
+
+    with bf_tabs[3]:
+        st.markdown("#### 🎯 Debiasing Your Retirement Plan")
+        strategies = {
+            "🤖 Automate Everything": [
+                "Set SIPs on salary credit date — not manually each month",
+                "Step-up SIP by 10% automatically each April",
+                "Auto-rebalance portfolio annually (many platforms support this)",
+                "Set direct debit for PPF, NPS contributions"
+            ],
+            "📅 Pre-Commitment Devices": [
+                "ELSS 3-year lock-in prevents panic selling",
+                "NPS lock-in until retirement prevents withdrawal",
+                "PPF 15-year tenure creates forced long-horizon thinking",
+                "Goal-based SIPs (label them 'Retirement 2050', not just 'SIP-1')"
+            ],
+            "📊 Rules-Based Investing": [
+                "Rebalance when any asset class deviates >5% from target allocation",
+                "Never check NAV more than once a month",
+                "Use a written Investment Policy Statement (IPS) — review annually only",
+                "Commit: 50% of all windfalls (bonus, gifts) go to retirement"
+            ],
+            "🧘 Cognitive Frameworks": [
+                "Think in decades, not quarters — 'How will I feel at 70 about this decision?'",
+                "Imagine your future self: write a letter from 70-year-old you",
+                "'Premortem' exercise: assume retirement failed — what caused it?",
+                "Find an accountability partner or fee-only financial advisor"
+            ]
+        }
+        for strategy, points in strategies.items():
+            with st.expander(strategy):
+                for pt in points:
+                    st.markdown(f"""
+                    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);
+                        font-size:0.82rem;color:#e6f1ff;">
+                    ✅ {pt}</div>""", unsafe_allow_html=True)
+
+        lesson_box("""
+        The best retirement plan is one that <b>removes human decision-making from the equation</b>. 
+        Automate contributions, lock in long-term vehicles, and commit to rules before emotions arise. 
+        Behavioural discipline — not stock-picking — is the primary driver of long-term wealth.
+        """)
+
+# ───────────────────────────────────────
+# TAB 10 – GLOSSARY & FORMULAS
+# ───────────────────────────────────────
+with tab10:
+    st.markdown("### 📖 Complete Glossary, Formulas & Quick Reference")
+    st.caption("A comprehensive reference for all concepts used in this retirement planning suite.")
+
+    gl_tabs = st.tabs(["📐 TVM Formulas", "📑 Retirement Concepts", "🏛️ Indian Instruments", "🌍 Global Benchmarks"])
+
+    with gl_tabs[0]:
+        st.markdown("#### Time Value of Money — Master Formula Sheet")
+
+        formulas = [
+            ("Future Value (FV)", "FV = PV × (1 + r)ⁿ",
+             "PV = Present Value, r = periodic rate, n = number of periods",
+             "₹1L invested at 12% for 10 years → FV = 1,00,000 × (1.12)¹⁰ = ₹3,10,585"),
+            ("Present Value (PV)", "PV = FV / (1 + r)ⁿ",
+             "FV = future amount needed, r = discount rate, n = periods",
+             "Need ₹50L in 20 years at 10% return → PV = 50,00,000 / (1.10)²⁰ = ₹7,43,218"),
+            ("Future Value of Annuity", "FVA = PMT × [(1+r)ⁿ - 1] / r",
+             "PMT = periodic payment, r = rate per period, n = number of periods",
+             "₹10K SIP/month at 12% p.a. for 20 years → FV = ₹ 99.9 lakhs"),
+            ("Present Value of Annuity", "PVA = PMT × [1 - (1+r)⁻ⁿ] / r",
+             "Used to calculate corpus needed for retirement withdrawals",
+             "Need ₹5L/year for 25 years at 7% → PVA = ₹58.3L corpus required"),
+            ("Growing Annuity FV", "FVGA = PMT × [(1+r)ⁿ - (1+g)ⁿ] / (r - g)",
+             "PMT = first payment, g = growth rate of payments, r = return rate",
+             "SIP growing 10% annually, starting ₹5K, 12% return, 30 years → massive wealth"),
+            ("PMT (Required Payment)", "PMT = FV × r / [(1+r)ⁿ - 1]",
+             "How much to invest each period to reach a target FV",
+             "Need ₹2Cr in 25 years at 12% → Monthly SIP = ₹9,244"),
+            ("NPER (Periods)", "NPER = ln[(FV×r + PMT) / (PV×r + PMT)] / ln(1+r)",
+             "How many periods to reach a goal",
+             "₹5K SIP at 12%, current savings ₹2L, target ₹1Cr → 18.5 years"),
+            ("RATE", "Solve: PV = FV/(1+r)ⁿ + PMT×[(1+r)ⁿ-1]/r numerically",
+             "Required return to reach goal — solved using Newton-Raphson/Brent's method",
+             "Need ₹3Cr in 20 years, saving ₹15K/month → Required rate = 15.2% p.a."),
+            ("Real Return", "(1 + Nominal) / (1 + Inflation) - 1",
+             "Fisher equation — removes the effect of inflation",
+             "12% nominal, 6% inflation → Real return = (1.12/1.06) - 1 = 5.66%"),
+            ("Safe Withdrawal Rate", "SWR = Annual Withdrawal / Starting Corpus",
+             "4% rule (Bengen): withdraw 4% of corpus in Year 1, inflation-adjust thereafter",
+             "₹2Cr corpus × 4% = ₹8L/year (₹67K/month) sustainable for 30 years"),
+            ("Funding Ratio", "FR = Projected Corpus / Required Corpus",
+             ">1.0 means fully funded; <1.0 means shortfall exists",
+             "Projected ₹3.2Cr / Required ₹2.4Cr = FR of 1.33 = 33% surplus"),
+        ]
+
+        for fname, formula, explanation, example in formulas:
+            with st.expander(f"📐 {fname}"):
+                col1, col2 = st.columns([1, 2])
+                with col1:
+                    st.markdown(f"""
+                    <div style="background:rgba(0,51,102,0.6);border:1px solid rgba(255,215,0,0.3);
+                        border-radius:10px;padding:16px;text-align:center;">
+                    <div style="font-family:'DM Mono',monospace;font-size:1rem;color:#FFD700;
+                        line-height:1.8;word-break:break-word;">{formula}</div>
+                    </div>
+                    <div style="margin-top:10px;font-size:0.75rem;color:#8892b0;line-height:1.6;">
+                    {explanation}</div>""", unsafe_allow_html=True)
+                with col2:
+                    st.markdown(f"""
+                    <div style="background:rgba(255,215,0,0.07);border-left:3px solid #FFD700;
+                        border-radius:0 10px 10px 0;padding:14px;font-size:0.8rem;
+                        color:#e6f1ff;line-height:1.7;">
+                    <b style="color:#FFD700;">Worked Example:</b><br>{example}
+                    </div>""", unsafe_allow_html=True)
+
+    with gl_tabs[1]:
+        st.markdown("#### Retirement Planning Concepts — A–Z")
+        concepts = {
+            "4% Rule (Safe Withdrawal Rate)": "Rule of thumb: withdraw 4% of corpus in year 1, adjust for inflation annually. Based on William Bengen's 1994 study of US market data. For India, 3–3.5% is safer due to higher structural inflation.",
+            "Asset Allocation": "Distribution of investments across asset classes (equity, debt, gold, real estate). Generally: (100 − age)% in equity as a starting heuristic. Should reflect risk tolerance and time horizon.",
+            "Bucket Strategy": "Divide retirement corpus into 3 buckets: (1) 1–3 years expenses in liquid/FD, (2) 4–10 years in debt funds, (3) 10+ years in equity. Spend from Bucket 1, refill from others.",
+            "Corpus": "Total accumulated retirement savings/investments at the time of retirement. The 'nest egg' that must sustain all retirement expenses.",
+            "FIRE (Financial Independence, Retire Early)": "Goal of accumulating 25–33× annual expenses to retire much earlier than traditional age. Requires high savings rates (40–70%) and frugal lifestyle.",
+            "Funding Gap": "The difference between annual retirement spending and guaranteed income (pension, Social Security). The corpus must cover the gap.",
+            "Glide Path": "The shift from higher equity to higher debt allocation as retirement approaches. Most target-date funds follow a glide path automatically.",
+            "Income Replacement Ratio": "Percentage of pre-retirement income needed in retirement. Typically 70–80% (housing loan paid off, children independent). Used to estimate retirement spending.",
+            "Inflation Risk": "The risk that inflation erodes the purchasing power of savings. The greatest long-term threat to retirement security.",
+            "Longevity Risk": "The risk of outliving your money. With life expectancy increasing, plan for 25–35 years in retirement.",
+            "Monte Carlo Simulation": "Statistical technique running thousands of scenarios with random returns to estimate the probability of retirement success.",
+            "Rebalancing": "Restoring original asset allocation periodically (annually). Forces buy-low/sell-high discipline. Critical to maintaining risk profile.",
+            "Sequence of Returns Risk": "The order of investment returns matters in retirement. Poor returns early in retirement are far more damaging than poor returns late, because a depleted corpus can't recover.",
+            "SWP (Systematic Withdrawal Plan)": "Regularly withdrawing a fixed amount from a mutual fund — the retirement-phase equivalent of an SIP.",
+            "Time Value of Money (TVM)": "A rupee today is worth more than a rupee tomorrow because of its earning potential. The foundation of all retirement mathematics.",
+        }
+        for term, definition in concepts.items():
+            st.markdown(f"""
+            <div style="background:rgba(0,51,102,0.35);border:1px solid rgba(173,216,230,0.15);
+                border-radius:10px;padding:14px 18px;margin-bottom:8px;">
+            <div style="color:#FFD700;font-weight:600;font-size:0.85rem;margin-bottom:6px;">{term}</div>
+            <div style="color:#e6f1ff;font-size:0.8rem;line-height:1.7;">{definition}</div>
+            </div>""", unsafe_allow_html=True)
+
+    with gl_tabs[2]:
+        st.markdown("#### 🏛️ Indian Retirement Instruments — Comprehensive Guide")
+        instruments = [
+            ("EPF — Employees' Provident Fund", "8.15% (FY24)", "Till retirement", "EEE",
+             "Mandatory for employees in establishments with 20+ workers. Both employer (12%) and employee (12%) contribute on basic salary. Withdraw 75% after 1 month of unemployment."),
+            ("PPF — Public Provident Fund", "7.1% (quarterly revision)", "15 years (extendable)", "EEE",
+             "Best debt instrument for retail investors. ₹500–₹1.5L/year limit. Loans available from Year 3. Partial withdrawal from Year 7. Sovereign guarantee."),
+            ("NPS — National Pension System", "Market-linked (8–12% historically)", "Till 60", "EET (60% tax-free)",
+             "Mandatory 40% in annuity on maturity. Additional ₹50K deduction under 80CCD(1B) over and above 80C limit. Tier-I locked till 60; Tier-II liquid."),
+            ("Sukanya Samriddhi Yojana", "8.2% (FY24)", "21 years or girl's marriage", "EEE",
+             "For daughters under 10. Minimum ₹250, maximum ₹1.5L/year. Great for daughter's education and marriage corpus."),
+            ("Senior Citizen Savings Scheme (SCSS)", "8.2% (FY24)", "5 years (extendable)", "Taxable interest",
+             "Available to 60+ years. Up to ₹30L investment. Quarterly interest payouts ideal for retirement income."),
+            ("RBI Floating Rate Savings Bonds", "8.05% (linked to NSC rate)", "7 years", "Taxable",
+             "Sovereign guarantee, floating rate linked to NSC. Better than FDs for safety. Semi-annual interest payouts."),
+            ("ELSS Mutual Funds", "Market-linked (12–15% historical)", "3-year lock-in", "LTCG above ₹1L taxed at 10%",
+             "Shortest lock-in under 80C. Equity exposure for wealth creation. Best for 80C utilization when retirement is 10+ years away."),
+            ("Annuity Plans (LIC / private insurers)", "5–7% (immediate annuity)", "Lifetime", "Taxable as income",
+             "Guaranteed income for life. Protects against longevity risk. Typically, allocate 30–40% of NPS corpus to annuity as required."),
+        ]
+        for iname, rate, tenure, tax, details in instruments:
+            with st.expander(f"🏦 {iname}"):
+                col1, col2, col3, col4 = st.columns(4)
+                col1.metric("Rate", rate)
+                col2.metric("Tenure", tenure)
+                col3.metric("Tax Status", tax)
+                col4.metric("Type", "Debt/Govt" if any(x in iname for x in ["PPF","EPF","SCSS","RBI","Sukanya"]) else "Market-linked")
+                st.markdown(f"""
+                <div style="background:rgba(0,51,102,0.3);border-radius:8px;padding:12px;
+                    font-size:0.8rem;color:#e6f1ff;line-height:1.7;margin-top:8px;">{details}</div>
+                """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.25);
+            border-radius:12px;padding:16px;margin-top:16px;">
+        <div style="color:#FFD700;font-weight:600;margin-bottom:10px;">💡 Optimal Tax-Saving Stack (₹2L+ savings per year)</div>
+        <div style="font-size:0.8rem;color:#e6f1ff;line-height:2;">
+        1. <b>EPF</b> — mandatory, keep it (12% employer match = 100% return)<br>
+        2. <b>PPF ₹1.5L</b> — fully utilise 80C, EEE status<br>
+        3. <b>NPS ₹50K</b> — additional 80CCD(1B) deduction, builds pension<br>
+        4. <b>ELSS</b> — any remaining 80C room + equity growth<br>
+        5. <b>SGB / REITs</b> — beyond 80C, for diversification and inflation hedging
+        </div></div>""", unsafe_allow_html=True)
+
+    with gl_tabs[3]:
+        st.markdown("#### 🌍 Global Retirement Benchmarks & Comparisons")
+        st.markdown("""
+        | Metric | India | USA | UK | Singapore | Japan |
+        |---|---|---|---|---|---|
+        | **Avg. Retirement Age** | 58–60 | 65 | 66 | 63 | 65 |
+        | **Life Expectancy** | 70 | 79 | 81 | 85 | 84 |
+        | **Avg. Retirement Duration** | 10–15 yrs | 14 yrs | 15 yrs | 22 yrs | 19 yrs |
+        | **Safe Withdrawal Rate** | 3–3.5% | 4% | 3.5% | 3% | 2.5% |
+        | **Inflation (Historical)** | 5–7% | 2–3% | 2–3% | 1–2% | 0–1% |
+        | **Equity Historical Return** | 12–14% (Nifty) | 10% (S&P 500) | 7–8% | 8–9% | 5–6% |
+        | **Real Return (Equity)** | 6–8% | 7–8% | 5–6% | 7–8% | 5–6% |
+        | **Primary Retirement Vehicle** | EPF + NPS | 401(k) + IRA | ISA + Pension | CPF | iDeCo + Kokumin |
+        | **Corpus Multiple Required** | 25–30× | 25× | 28× | 33× | 40× |
+        """)
+
+        st.markdown("""
+        <div style="background:rgba(0,51,102,0.4);border:1px solid rgba(173,216,230,0.2);
+            border-radius:12px;padding:16px;margin-top:16px;">
+        <div style="color:#FFD700;font-size:0.9rem;font-weight:600;margin-bottom:10px;">🔑 Key Takeaways for Indian Planners</div>
+        <div style="font-size:0.8rem;color:#e6f1ff;line-height:2;">
+        • India's higher inflation (~6%) means you need a <b>higher corpus multiple (28–33×)</b> than the Western 25× rule<br>
+        • India's shorter average retirement duration (low life expectancy vs Singapore/Japan) partially offsets this<br>
+        • Nifty 50 at 12–14% CAGR historically gives <b>real returns of 6–8%</b> — among the world's best<br>
+        • Unlike the West, Indian retirees often have <b>family support</b> reducing pure financial need by 20–30%<br>
+        • Healthcare costs in India are growing at 10–15% p.a. — a critical underestimated retirement expense<br>
+        • The EEE status of PPF/EPF is unique globally — <b>maximise these before taxable instruments</b>
+        </div></div>""", unsafe_allow_html=True)
+
+
 st.markdown("---")
 st.markdown("""
 <div style="text-align:center;padding:16px;font-size:0.72rem;color:#8892b0;line-height:2;">
