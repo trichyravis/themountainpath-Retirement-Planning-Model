@@ -1,3 +1,4 @@
+
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -411,18 +412,25 @@ GRN     = "#28a745"
 RED     = "#dc3545"
 GRID    = "rgba(255,255,255,0.06)"
 
-def base_layout(title="", h=420):
-    return dict(
+def base_layout(title="", h=420, xaxis_extra=None, yaxis_extra=None, **kwargs):
+    xax = dict(gridcolor=GRID, zerolinecolor=GRID, linecolor=GRID)
+    if xaxis_extra:
+        xax.update(xaxis_extra)
+    yax = dict(gridcolor=GRID, zerolinecolor=GRID, linecolor=GRID)
+    if yaxis_extra:
+        yax.update(yaxis_extra)
+    layout = dict(
         title=dict(text=title, font=dict(family="Playfair Display", size=16, color=GOLD), x=0.01),
         plot_bgcolor=PLOT_BG, paper_bgcolor=PAPER_BG,
         font=dict(family="DM Sans", color="#e6f1ff", size=11),
-        xaxis=dict(gridcolor=GRID, zerolinecolor=GRID, linecolor=GRID),
-        yaxis=dict(gridcolor=GRID, zerolinecolor=GRID, linecolor=GRID),
-        legend=dict(bgcolor="rgba(0,0,0,0.3)", bordercolor="rgba(255,215,0,0.2)", borderwidth=1,
-                    font=dict(size=10)),
+        xaxis=xax, yaxis=yax,
+        legend=dict(bgcolor="rgba(0,0,0,0.3)", bordercolor="rgba(255,215,0,0.2)",
+                    borderwidth=1, font=dict(size=10)),
         margin=dict(l=50, r=20, t=50, b=40),
         height=h,
     )
+    layout.update(kwargs)
+    return layout
 
 # ───────────────────────────────────────
 # TAB 1 – DASHBOARD
@@ -563,11 +571,12 @@ with tab2:
         fig.add_trace(go.Bar(x=savings_df["Age"], y=savings_df["Investment Return"],
             name="Investment Return", marker_color="rgba(173,216,230,0.4)",
             yaxis="y2"))
-        fig.update_layout(**base_layout("Savings Growth — Contributions vs Investment Returns", h=420),
+        fig.update_layout(
+            **base_layout("Savings Growth — Contributions vs Investment Returns", h=420,
+                          yaxis_extra=dict(title="Portfolio Balance", tickformat=".2s")),
+            barmode="stack",
             yaxis2=dict(overlaying="y", side="right", showgrid=False,
-                        title="Annual Amount", tickformat=".2s"),
-            yaxis=dict(title="Portfolio Balance", tickformat=".2s", gridcolor=GRID),
-            barmode="stack")
+                        title="Annual Amount", tickformat=".2s"))
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
@@ -607,8 +616,8 @@ with tab2:
         fig_pie.add_annotation(text=f"Power of<br>Compounding",
             x=0.5, y=0.5, font=dict(size=11, color=GOLD, family="Playfair Display"),
             showarrow=False)
-        fig_pie.update_layout(**base_layout("Wealth Driver Breakdown", h=280),
-                              showlegend=True, legend=dict(orientation="h", y=-0.1))
+        fig_pie.update_layout(**base_layout("Wealth Driver Breakdown", h=280))
+        fig_pie.update_layout(showlegend=True, legend=dict(orientation="h", y=-0.1))
         st.plotly_chart(fig_pie, use_container_width=True)
 
     # Data table
@@ -686,9 +695,10 @@ with tab4:
         name="Annual Withdrawal", marker_color="rgba(173,216,230,0.45)"), secondary_y=True)
     fig.add_trace(go.Bar(x=withdrawal_df["Age"], y=withdrawal_df["Investment Return"],
         name="Investment Return", marker_color="rgba(40,167,69,0.35)"), secondary_y=True)
-    fig.update_layout(**base_layout("Portfolio Drawdown & Annual Cash Flows", h=420),
+    fig.update_layout(
+        **base_layout("Portfolio Drawdown & Annual Cash Flows", h=420,
+                      yaxis_extra=dict(title="Portfolio Balance", tickformat=".2s")),
         barmode="group",
-        yaxis=dict(title="Portfolio Balance", tickformat=".2s", gridcolor=GRID),
         yaxis2=dict(title="Annual Amount", tickformat=".2s", showgrid=False))
     st.plotly_chart(fig, use_container_width=True)
 
@@ -788,8 +798,10 @@ with tab5:
             text=f"{high_vals[i]:+.1f}%", textposition="outside",
             textfont=dict(size=9, color=GRN)))
     fig_t.add_vline(x=0, line_color=GOLD, line_width=1.5)
-    fig_t.update_layout(**base_layout("Tornado — Sensitivity of Projected Corpus", h=340),
-        barmode="overlay", xaxis=dict(title="% Change vs Base Case", gridcolor=GRID))
+    fig_t.update_layout(
+        **base_layout("Tornado — Sensitivity of Projected Corpus", h=340,
+                      xaxis_extra=dict(title="% Change vs Base Case")),
+        barmode="overlay")
     st.plotly_chart(fig_t, use_container_width=True)
 
 # ───────────────────────────────────────
