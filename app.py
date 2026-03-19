@@ -310,29 +310,29 @@ div[class*="option"]:hover {
     font-size: 0.88rem !important;
 }
 
+/* ─── Sidebar nav buttons ─── */
+[data-testid="stSidebar"] .stButton > button {
+    background: rgba(0,30,60,0.6) !important;
+    border: 1px solid rgba(173,216,230,0.25) !important;
+    border-radius: 8px !important;
+    color: #c8d8f0 !important;
+    font-size: 0.78rem !important;
+    font-weight: 500 !important;
+    padding: 7px 10px !important;
+    text-align: left !important;
+    transition: all 0.15s ease !important;
+    width: 100% !important;
+    margin-bottom: 3px !important;
+}
+[data-testid="stSidebar"] .stButton > button:hover {
+    background: rgba(0,51,102,0.85) !important;
+    border-color: rgba(255,215,0,0.5) !important;
+    color: #FFD700 !important;
+}
+
 /* ─── hide hamburger & Streamlit footer ─── */
 #MainMenu, footer { visibility: hidden; }
 </style>
-<script>
-// Listen for scroll requests from nav iframe components
-(function(){
-  if(window.__mp_scroll_listener) return; // attach only once
-  window.__mp_scroll_listener = true;
-  window.addEventListener('message', function(e){
-    if(e.data && e.data.type === 'mp_scroll'){
-      function tryScroll(attempts){
-        var el = document.getElementById(e.data.target);
-        if(el){
-          el.scrollIntoView({behavior:'smooth', block:'start'});
-        } else if(attempts > 0){
-          setTimeout(function(){ tryScroll(attempts-1); }, 100);
-        }
-      }
-      setTimeout(function(){ tryScroll(10); }, 100);
-    }
-  });
-})();
-</script>
 """, unsafe_allow_html=True)
 
 # ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -418,6 +418,27 @@ st.markdown("""
 </div>
 </div>
 """, unsafe_allow_html=True)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ─── NAVIGATION SETUP (before sidebar so state is ready) ─────────────────────
+# ═══════════════════════════════════════════════════════════════════════════════
+NAV_SECTIONS = [
+    ("dashboard",   "📊", "Dashboard",          "analysis"),
+    ("savings",     "📈", "Savings Growth",      "analysis"),
+    ("retirement",  "🏦", "Retirement Needs",    "analysis"),
+    ("withdrawal",  "💸", "Withdrawal Plan",     "analysis"),
+    ("sensitivity", "🔬", "Sensitivity",         "analysis"),
+    ("montecarlo",  "🎲", "Monte Carlo",         "education"),
+    ("tvm",         "📚", "TVM Basics",          "education"),
+    ("casestudies", "🎓", "Case Studies",        "education"),
+    ("behavioural", "⚖️", "Behavioural Finance", "education"),
+    ("glossary",    "📖", "Glossary & Formulas", "education"),
+]
+if "active_section" not in st.session_state:
+    st.session_state["active_section"] = "dashboard"
+
+def _nav_click(key):
+    st.session_state["active_section"] = key
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ─── SIDEBAR INPUTS ───────────────────────────────────────────────────────────
@@ -561,6 +582,47 @@ with st.sidebar:
     return_std   = st.slider("Return Volatility (Std Dev %)", 1.0, 25.0, 8.0 if is_inr else 12.0, 1.0) / 100
     inflation_std= st.slider("Inflation Volatility (Std Dev %)", 0.5, 5.0, 1.5, 0.5) / 100
 
+    # ── Sidebar Navigation ───────────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown("""
+    <div style="font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:900;
+        color:#FFD700;margin-bottom:8px;letter-spacing:0.02em;">
+        🗺️ Navigate to Section
+    </div>
+    <div style="font-size:0.72rem;color:#a8c4e0;margin-bottom:10px;line-height:1.5;">
+        Click a button — page jumps to that section instantly.
+    </div>""", unsafe_allow_html=True)
+
+    _active_sb = st.session_state["active_section"]
+
+    st.markdown('<div style="color:#FFD700;font-size:0.72rem;font-weight:700;'
+                'letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">'
+                '📐 Analysis Tools</div>', unsafe_allow_html=True)
+    for _key, _emo, _lbl, _grp in [s for s in NAV_SECTIONS if s[3] == "analysis"]:
+        _is_active = (_active_sb == _key)
+        _btn_style = ("border:2px solid #FFD700;background:rgba(0,51,102,0.9);"
+                      "color:#FFD700;font-weight:700;") if _is_active else ""
+        st.button(
+            f"{_emo} {_lbl}{'  ◀' if _is_active else ''}",
+            key=f"sb_nav_{_key}",
+            on_click=_nav_click,
+            args=(_key,),
+            use_container_width=True,
+        )
+
+    st.markdown('<div style="color:#ADD8E6;font-size:0.72rem;font-weight:700;'
+                'letter-spacing:0.1em;text-transform:uppercase;margin:10px 0 4px 0;">'
+                '📚 Education & Learning</div>', unsafe_allow_html=True)
+    for _key, _emo, _lbl, _grp in [s for s in NAV_SECTIONS if s[3] == "education"]:
+        _is_active = (_active_sb == _key)
+        st.button(
+            f"{_emo} {_lbl}{'  ◀' if _is_active else ''}",
+            key=f"sb_nav_{_key}",
+            on_click=_nav_click,
+            args=(_key,),
+            use_container_width=True,
+        )
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # ─── CORE CALCULATIONS ────────────────────────────────────────────────────────
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -703,189 +765,34 @@ c6.metric("MC Success Rate",  f"{success_rate:.1f}%",
 st.markdown("---")
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ─── CUSTOM TWO-ROW NAVIGATION BAR ───────────────────────────────────────────
+# ─── CONTENT AREA — active section set from sidebar nav ──────────────────────
 # ═══════════════════════════════════════════════════════════════════════════════
-
-# All 10 sections defined — used for navigation and content rendering
-NAV_SECTIONS = [
-    # (key, emoji, label, group)
-    ("dashboard",      "📊", "Dashboard",           "analysis"),
-    ("savings",        "📈", "Savings Growth",       "analysis"),
-    ("retirement",     "🏦", "Retirement Needs",     "analysis"),
-    ("withdrawal",     "💸", "Withdrawal Plan",      "analysis"),
-    ("sensitivity",    "🔬", "Sensitivity",          "analysis"),
-    ("montecarlo",     "🎲", "Monte Carlo",          "education"),
-    ("tvm",            "📚", "TVM Basics",           "education"),
-    ("casestudies",    "🎓", "Case Studies",         "education"),
-    ("behavioural",    "⚖️", "Behavioural Finance",  "education"),
-    ("glossary",       "📖", "Glossary & Formulas",  "education"),
-]
-
-if "active_section" not in st.session_state:
-    st.session_state["active_section"] = "dashboard"
-if "just_navigated" not in st.session_state:
-    st.session_state["just_navigated"] = False
-
-def _nav_click(key):
-    st.session_state["active_section"] = key
-    st.session_state["just_navigated"] = True
-
 active = st.session_state["active_section"]
-
-# ── Instruction banner ────────────────────────────────────────────────────────
-st.markdown("""
-<div style="background:linear-gradient(90deg,rgba(0,51,102,0.8),rgba(0,77,128,0.6));
-    border:1px solid rgba(255,215,0,0.35);border-radius:10px;
-    padding:10px 18px;margin-bottom:14px;
-    display:flex;align-items:center;gap:12px;">
-  <span style="font-size:1.3rem;">👆</span>
-  <div>
-    <span style="color:#FFD700;font-weight:700;font-size:0.85rem;">How to navigate:</span>
-    <span style="color:#c8d8f0;font-size:0.82rem;">
-      &nbsp;Click any button below to open that section.
-      &nbsp;<b style="color:#FFD700;">📐 Analysis Tools</b> for planning &nbsp;·&nbsp;
-      <b style="color:#ADD8E6;">📚 Education &amp; Learning</b> for concepts &amp; case studies.
-    </span>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ── Analysis Tools Row ────────────────────────────────────────────────────────
-st.markdown("""
-<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;margin-top:2px;">
-  <span style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:900;
-    color:#FFD700;letter-spacing:0.04em;text-shadow:0 0 20px rgba(255,215,0,0.4);">
-    📐 Analysis Tools
-  </span>
-  <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(255,215,0,0.5),transparent);"></div>
-</div>""", unsafe_allow_html=True)
-
-row1_cols = st.columns(5)
-for col, (key, emoji, label, grp) in zip(row1_cols, [s for s in NAV_SECTIONS if s[3]=="analysis"]):
-    is_active = (active == key)
-    with col:
-        if is_active:
-            st.markdown(
-                f'<div style="background:rgba(0,51,102,0.95);border:2px solid #FFD700;'
-                f'border-radius:9px;padding:9px 4px;text-align:center;cursor:pointer;'
-                f'box-shadow:0 0 12px rgba(255,215,0,0.4);">'
-                f'<div style="font-size:1.1rem;">{emoji}</div>'
-                f'<div style="color:#FFD700;font-size:0.72rem;font-weight:700;'
-                f'line-height:1.3;margin-top:2px;">{label}</div>'
-                f'<div style="width:28px;height:3px;background:#FFD700;border-radius:2px;'
-                f'margin:5px auto 0;"></div>'
-                f'</div>',
-                unsafe_allow_html=True
-            )
-        else:
-            st.button(
-                f"{emoji}\n{label}",
-                key=f"nav_{key}",
-                on_click=_nav_click,
-                args=(key,),
-                use_container_width=True,
-            )
-
-# ── Education & Learning Tools Row ───────────────────────────────────────────
-st.markdown("""
-<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;margin-top:14px;">
-  <span style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:900;
-    color:#ADD8E6;letter-spacing:0.04em;text-shadow:0 0 20px rgba(173,216,230,0.35);">
-    📚 Education &amp; Learning
-  </span>
-  <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(173,216,230,0.4),transparent);"></div>
-</div>""", unsafe_allow_html=True)
-
-row2_cols = st.columns(5)
-for col, (key, emoji, label, grp) in zip(row2_cols, [s for s in NAV_SECTIONS if s[3]=="education"]):
-    is_active = (active == key)
-    with col:
-        if is_active:
-            st.markdown(
-                f'<div style="background:rgba(0,30,60,0.95);border:2px solid #ADD8E6;'
-                f'border-radius:9px;padding:9px 4px;text-align:center;cursor:pointer;'
-                f'box-shadow:0 0 12px rgba(173,216,230,0.4);">'
-                f'<div style="font-size:1.1rem;">{emoji}</div>'
-                f'<div style="color:#ADD8E6;font-size:0.72rem;font-weight:700;'
-                f'line-height:1.3;margin-top:2px;">{label}</div>'
-                f'<div style="width:28px;height:3px;background:#ADD8E6;border-radius:2px;'
-                f'margin:5px auto 0;"></div>'
-                f'</div>',
-                unsafe_allow_html=True
-            )
-        else:
-            st.button(
-                f"{emoji}\n{label}",
-                key=f"nav_{key}",
-                on_click=_nav_click,
-                args=(key,),
-                use_container_width=True,
-            )
-
-# ── Active section indicator + scroll anchor ──────────────────────────────────
-_sec = next(s for s in NAV_SECTIONS if s[0] == active)
+_sec      = next(s for s in NAV_SECTIONS if s[0] == active)
 _row_color = "#FFD700" if _sec[3] == "analysis" else "#ADD8E6"
 
+# Active section banner — sits at top of content, always visible
 st.markdown(
-    f'<div id="mp-content-anchor" style="border-top:2px solid {_row_color};'
-    f'margin:8px 0 16px 0;padding-top:10px;">'
-    f'<span style="background:{_row_color};color:#001a33;font-size:0.72rem;font-weight:800;'
-    f'padding:3px 12px;border-radius:0 0 8px 8px;letter-spacing:0.08em;">'
-    f'▼ &nbsp;{_sec[1]} {_sec[2].upper()}'
-    f'</span></div>',
+    f'<div style="border-left:4px solid {_row_color};'
+    f'background:rgba(0,20,50,0.5);border-radius:0 10px 10px 0;'
+    f'padding:10px 20px;margin-bottom:18px;'
+    f'display:flex;align-items:center;gap:12px;">'
+    f'<span style="font-size:1.5rem;">{_sec[1]}</span>'
+    f'<div>'
+    f'<div style="font-family:\'Playfair Display\',serif;font-size:1.1rem;'
+    f'font-weight:700;color:{_row_color};">{_sec[2]}</div>'
+    f'<div style="font-size:0.72rem;color:#a8c4e0;">'
+    f'{"📐 Analysis Tools" if _sec[3]=="analysis" else "📚 Education & Learning"}'
+    f' &nbsp;·&nbsp; Use sidebar to switch sections</div>'
+    f'</div></div>',
     unsafe_allow_html=True
 )
 
-# Scroll on nav click using postMessage to reach parent from iframe
-if st.session_state.get("just_navigated", False):
-    st.session_state["just_navigated"] = False
-    st.session_state["scroll_count"] = st.session_state.get("scroll_count", 0) + 1
-    _sc = st.session_state["scroll_count"]
-    # This iframe sends a message to parent; parent listener (injected once in CSS block) handles scroll
-    st.components.v1.html(
-        f"""<script>
-        // Send scroll request to parent Streamlit window
-        window.parent.postMessage({{type:"mp_scroll",target:"mp-content-anchor",t:{_sc}}}, "*");
-        </script>""",
-        height=0,
-        scrolling=False,
-    )
-
-# ── CSS: Style the nav buttons ────────────────────────────────────────────────
-st.markdown("""
-<style>
-/* Nav buttons — prominent, card-style */
-[data-testid="stMain"] .stButton > button {
-    background: rgba(0,30,60,0.65) !important;
-    border: 1px solid rgba(173,216,230,0.35) !important;
-    border-radius: 9px !important;
-    color: #c8d8f0 !important;
-    font-size: 0.75rem !important;
-    font-weight: 600 !important;
-    padding: 8px 4px !important;
-    white-space: pre-line !important;
-    line-height: 1.4 !important;
-    min-height: 56px !important;
-    transition: all 0.15s ease !important;
-    width: 100% !important;
-}
-[data-testid="stMain"] .stButton > button:hover {
-    background: rgba(0,51,102,0.85) !important;
-    border-color: rgba(255,215,0,0.6) !important;
-    color: #FFD700 !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 16px rgba(255,215,0,0.2) !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ── Fake tab variables for compatibility with all existing content blocks ─────
-# We use if/elif blocks — these are just placeholders so existing `with tab1:` etc still work
 import contextlib
 
 @contextlib.contextmanager
 def _section(name):
-    if active == name:
+    if st.session_state["active_section"] == name:
         yield True
     else:
         yield False
