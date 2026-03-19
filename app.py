@@ -313,6 +313,26 @@ div[class*="option"]:hover {
 /* ─── hide hamburger & Streamlit footer ─── */
 #MainMenu, footer { visibility: hidden; }
 </style>
+<script>
+// Listen for scroll requests from nav iframe components
+(function(){
+  if(window.__mp_scroll_listener) return; // attach only once
+  window.__mp_scroll_listener = true;
+  window.addEventListener('message', function(e){
+    if(e.data && e.data.type === 'mp_scroll'){
+      function tryScroll(attempts){
+        var el = document.getElementById(e.data.target);
+        if(el){
+          el.scrollIntoView({behavior:'smooth', block:'start'});
+        } else if(attempts > 0){
+          setTimeout(function(){ tryScroll(attempts-1); }, 100);
+        }
+      }
+      setTimeout(function(){ tryScroll(10); }, 100);
+    }
+  });
+})();
+</script>
 """, unsafe_allow_html=True)
 
 # ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -806,7 +826,6 @@ for col, (key, emoji, label, grp) in zip(row2_cols, [s for s in NAV_SECTIONS if 
 _sec = next(s for s in NAV_SECTIONS if s[0] == active)
 _row_color = "#FFD700" if _sec[3] == "analysis" else "#ADD8E6"
 
-# Anchor div — JS scrolls to this on nav click
 st.markdown(
     f'<div id="mp-content-anchor" style="border-top:2px solid {_row_color};'
     f'margin:8px 0 16px 0;padding-top:10px;">'
@@ -817,33 +836,20 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# JavaScript scroll — fires only when a nav button was just clicked
+# Scroll on nav click using postMessage to reach parent from iframe
 if st.session_state.get("just_navigated", False):
     st.session_state["just_navigated"] = False
-    st.components.v1.html("""
-<script>
-(function() {
-    // Walk up into the parent Streamlit iframe document and scroll to anchor
-    function scrollToContent() {
-        // Try within same document first (no iframe)
-        var anchor = document.getElementById('mp-content-anchor');
-        if (anchor) {
-            anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            return;
-        }
-        // Try parent window (Streamlit embeds in iframe)
-        try {
-            var parentAnchor = window.parent.document.getElementById('mp-content-anchor');
-            if (parentAnchor) {
-                parentAnchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        } catch(e) {}
-    }
-    // Small delay ensures DOM is updated before scroll
-    setTimeout(scrollToContent, 120);
-})();
-</script>
-""", height=0, scrolling=False)
+    st.session_state["scroll_count"] = st.session_state.get("scroll_count", 0) + 1
+    _sc = st.session_state["scroll_count"]
+    # This iframe sends a message to parent; parent listener (injected once in CSS block) handles scroll
+    st.components.v1.html(
+        f"""<script>
+        // Send scroll request to parent Streamlit window
+        window.parent.postMessage({{type:"mp_scroll",target:"mp-content-anchor",t:{_sc}}}, "*");
+        </script>""",
+        height=0,
+        scrolling=False,
+    )
 
 # ── CSS: Style the nav buttons ────────────────────────────────────────────────
 st.markdown("""
