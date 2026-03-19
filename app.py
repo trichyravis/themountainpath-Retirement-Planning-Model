@@ -141,24 +141,30 @@ hr { border-color: rgba(255,215,0,0.15) !important; }
 
 # ─── HELPERS ─────────────────────────────────────────────────────────────────
 def fmt_inr(n, decimals=0):
-    """Format number in Indian system with ₹ symbol."""
+    """Format number in Indian system: Crores above 1Cr, Lakhs above 1L, else Indian comma."""
     n = float(n)
-    if abs(n) >= 1e7:
-        return f"₹{n/1e7:.2f} Cr"
-    elif abs(n) >= 1e5:
-        return f"₹{n/1e5:.2f} L"
+    sign = "-" if n < 0 else ""
+    n = abs(n)
+    if n >= 1e7:
+        return f"{sign}₹{n/1e7:.2f} Cr"
+    elif n >= 1e5:
+        return f"{sign}₹{n/1e5:.2f} L"
+    elif n >= 1e3:
+        return f"{sign}₹{n/1e3:.1f}K"
     else:
-        return f"₹{n:,.{decimals}f}"
+        return f"{sign}₹{n:,.{decimals}f}"
 
 def fmt_usd(n):
     """Format number in US system with $ symbol."""
     n = float(n)
-    if abs(n) >= 1e6:
-        return f"${n/1e6:.2f}M"
-    elif abs(n) >= 1e3:
-        return f"${n/1e3:.1f}K"
+    sign = "-" if n < 0 else ""
+    n = abs(n)
+    if n >= 1e6:
+        return f"{sign}${n/1e6:.2f}M"
+    elif n >= 1e3:
+        return f"{sign}${n/1e3:.1f}K"
     else:
-        return f"${n:,.0f}"
+        return f"{sign}${n:,.0f}"
 
 def pv_annuity(pmt, r, n):
     if r == 0:
@@ -258,18 +264,47 @@ with st.sidebar:
 
     curr_income  = st.number_input(f"Annual Income ({curr_sym})",
                                    INC["mn"], INC["mx"], INC["df"], INC["st"])
+
+    # Human-readable income interpretation (converts raw number to Lakhs/Crores or K/M)
+    if is_inr:
+        _inc_fmt = f"₹{curr_income/1e5:.2f} Lakhs" if curr_income < 1e7 else f"₹{curr_income/1e7:.2f} Crores"
+    else:
+        _inc_fmt = f"${curr_income/1e3:.1f}K" if curr_income < 1e6 else f"${curr_income/1e6:.2f}M"
+    st.markdown(
+        f'<div style="font-size:0.72rem;color:#8892b0;margin:-10px 0 6px 2px;">'
+        f'≡ {_inc_fmt} per year</div>',
+        unsafe_allow_html=True
+    )
+
     income_growth= st.slider("Income Growth Rate (%)", 0.0, 15.0, 7.0 if is_inr else 3.0, 0.5) / 100
     savings_rate = st.slider("Savings Rate (% of Income)", 1.0, 50.0, 20.0 if is_inr else 15.0, 0.5) / 100
     curr_savings = st.number_input(f"Current Savings ({curr_sym})",
                                    SAV["mn"], SAV["mx"], SAV["df"], SAV["st"])
+    if is_inr:
+        _sav_fmt = f"₹{curr_savings/1e5:.2f} Lakhs" if curr_savings < 1e7 else f"₹{curr_savings/1e7:.2f} Crores"
+    else:
+        _sav_fmt = f"${curr_savings/1e3:.1f}K" if curr_savings < 1e6 else f"${curr_savings/1e6:.2f}M"
+    st.markdown(
+        f'<div style="font-size:0.72rem;color:#8892b0;margin:-10px 0 6px 2px;">'
+        f'≡ {_sav_fmt} accumulated so far</div>',
+        unsafe_allow_html=True
+    )
 
-    # Live savings preview
+    # Live savings preview — uses proper Lakhs/Crores or K/M formatting
     _ann_prev = curr_income * savings_rate
+    _mon_prev = _ann_prev / 12
+    if is_inr:
+        _ann_disp = f"₹{_ann_prev/1e5:.2f} L" if _ann_prev < 1e7 else f"₹{_ann_prev/1e7:.2f} Cr"
+        _mon_disp = f"₹{_mon_prev/1e3:.2f}K" if _mon_prev >= 1000 else f"₹{_mon_prev:,.0f}"
+    else:
+        _ann_disp = f"${_ann_prev/1e3:.1f}K" if _ann_prev >= 1000 else f"${_ann_prev:,.0f}"
+        _mon_disp = f"${_mon_prev:,.0f}"
     st.markdown(
         f'<div style="background:rgba(0,51,102,0.45);border:1px solid rgba(255,215,0,0.18);'
-        f'border-radius:6px;padding:6px 12px;margin-bottom:8px;font-size:0.74rem;color:#ADD8E6;">'
-        f'💾 Annual savings: <b style="color:#FFD700;">{curr_sym}{_ann_prev:,.0f}</b>'
-        f'&nbsp;|&nbsp;Monthly: <b style="color:#FFD700;">{curr_sym}{_ann_prev/12:,.0f}</b>'
+        f'border-radius:6px;padding:7px 12px;margin-bottom:8px;font-size:0.77rem;color:#ADD8E6;">'
+        f'💾 Saves <b style="color:#FFD700;">{_ann_disp}</b>/year'
+        f'&nbsp;·&nbsp;<b style="color:#FFD700;">{_mon_disp}</b>/month'
+        f'&nbsp;·&nbsp;<span style="color:#8892b0;">{savings_rate*100:.1f}% of income</span>'
         f'</div>',
         unsafe_allow_html=True
     )
@@ -283,9 +318,21 @@ with st.sidebar:
     st.markdown("## 🏠 Retirement Spending")
     desired_spending = st.number_input(f"Desired Annual Spending Today ({curr_sym})",
                                        SPC["mn"], SPC["mx"], SPC["df"], SPC["st"])
+    if is_inr:
+        _spc_fmt = f"₹{desired_spending/1e5:.2f} Lakhs/yr" if desired_spending < 1e7 else f"₹{desired_spending/1e7:.2f} Crores/yr"
+    else:
+        _spc_fmt = f"${desired_spending/1e3:.1f}K/yr"
+    st.markdown(f'<div style="font-size:0.72rem;color:#8892b0;margin:-10px 0 6px 2px;">≡ {_spc_fmt} · Monthly: {curr_sym}{desired_spending/12:,.0f}</div>', unsafe_allow_html=True)
+
     replacement_ratio= st.slider("Income Replacement Ratio (%)", 40.0, 100.0, 75.0, 5.0) / 100
     pension_income   = st.number_input(f"Annual Pension / Social Security ({curr_sym})",
                                        PEN["mn"], PEN["mx"], PEN["df"], PEN["st"])
+    if pension_income > 0:
+        if is_inr:
+            _pen_fmt = f"₹{pension_income/1e5:.2f} L/yr · ₹{pension_income/12/1000:.1f}K/mo"
+        else:
+            _pen_fmt = f"${pension_income/1e3:.1f}K/yr · ${pension_income/12:,.0f}/mo"
+        st.markdown(f'<div style="font-size:0.72rem;color:#8892b0;margin:-10px 0 6px 2px;">≡ {_pen_fmt}</div>', unsafe_allow_html=True)
     other_income     = st.number_input(f"Other Retirement Income ({curr_sym})",
                                        OTH["mn"], OTH["mx"], OTH["df"], OTH["st"])
 
