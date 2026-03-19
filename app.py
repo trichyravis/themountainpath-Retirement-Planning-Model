@@ -167,28 +167,61 @@ section[data-testid="stMain"] h4 {
 [data-testid="stMetricValue"] { color: var(--gold) !important; font-family: 'Playfair Display', serif; font-size: 1.6rem; }
 [data-testid="stMetricDelta"] { font-size: 0.78rem; }
 
-/* ─── Tabs ─── */
+/* ─── Tabs — Two-Row Layout ─── */
+/* Both tab bars share base styling */
 .stTabs [data-baseweb="tab-list"] {
-    background: rgba(0,0,0,0.4);
+    background: rgba(0,0,0,0.35);
     border-radius: 10px;
     padding: 4px;
-    gap: 4px;
+    gap: 3px;
+    flex-wrap: nowrap;
 }
 .stTabs [data-baseweb="tab"] {
     color: #c8d8f0 !important;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.82rem;
+    font-size: 0.80rem;
     font-weight: 500;
-    border-radius: 8px;
-    padding: 8px 18px;
-    letter-spacing: 0.04em;
+    border-radius: 7px;
+    padding: 7px 14px;
+    letter-spacing: 0.03em;
     background: rgba(0,30,60,0.4) !important;
+    white-space: nowrap;
 }
 .stTabs [aria-selected="true"] {
     background: var(--darkblue) !important;
     color: var(--gold) !important;
     border: 1px solid rgba(255,215,0,0.45) !important;
     font-weight: 600 !important;
+}
+/* Row 1 — Analysis tabs: bottom border connects to row 2 */
+.stTabs:nth-of-type(1) [data-baseweb="tab-list"] {
+    border-radius: 10px 10px 0 0;
+    border-bottom: 2px solid rgba(255,215,0,0.2);
+    margin-bottom: 0 !important;
+    padding-bottom: 4px;
+}
+/* Row 2 — Education tabs: top connects to row 1 */
+.stTabs:nth-of-type(2) [data-baseweb="tab-list"] {
+    border-radius: 0 0 10px 10px;
+    border-top: none;
+    margin-top: 0 !important;
+    padding-top: 4px;
+    background: rgba(0,0,0,0.25);
+}
+/* Row 2 inactive tab — slightly dimmer to distinguish from row 1 */
+.stTabs:nth-of-type(2) [data-baseweb="tab"] {
+    background: rgba(0,20,50,0.5) !important;
+    font-size: 0.78rem;
+}
+/* Collapse the gap between the two tab containers */
+.stTabs:nth-of-type(1) {
+    margin-bottom: -12px !important;
+}
+/* Tab content panels — add top border for clear separation */
+.stTabs [data-baseweb="tab-panel"] {
+    padding-top: 20px !important;
+    border-top: 1px solid rgba(255,215,0,0.1);
+    margin-top: 4px;
 }
 
 /* ─── Expanders ─── */
@@ -678,11 +711,31 @@ c6.metric("MC Success Rate",  f"{success_rate:.1f}%",
 st.markdown("---")
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ─── MAIN TABS ────────────────────────────────────────────────────────────────
+# ─── MAIN TABS — ROW 1: Analysis  |  ROW 2: Education ────────────────────────
 # ═══════════════════════════════════════════════════════════════════════════════
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+st.markdown(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">'
+    '<span style="font-size:0.68rem;color:#FFD700;font-weight:700;letter-spacing:0.12em;'
+    'text-transform:uppercase;background:rgba(0,51,102,0.6);padding:3px 10px;'
+    'border-radius:4px;border:1px solid rgba(255,215,0,0.3);">📐 Analysis</span>'
+    '</div>',
+    unsafe_allow_html=True
+)
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📊 Dashboard", "📈 Savings Growth", "🏦 Retirement Needs",
-    "💸 Withdrawal Plan", "🔬 Sensitivity", "🎲 Monte Carlo", "📚 TVM Basics",
+    "💸 Withdrawal Plan", "🔬 Sensitivity"
+])
+
+st.markdown(
+    '<div style="display:flex;align-items:center;gap:10px;margin:8px 0 4px 0;">'
+    '<span style="font-size:0.68rem;color:#ADD8E6;font-weight:700;letter-spacing:0.12em;'
+    'text-transform:uppercase;background:rgba(0,30,60,0.6);padding:3px 10px;'
+    'border-radius:4px;border:1px solid rgba(173,216,230,0.3);">📚 Education & Tools</span>'
+    '</div>',
+    unsafe_allow_html=True
+)
+tab6, tab7, tab8, tab9, tab10 = st.tabs([
+    "🎲 Monte Carlo", "📚 TVM Basics",
     "🎓 Case Studies", "⚖️ Behavioural Finance", "📖 Glossary & Formulas"
 ])
 
