@@ -80,11 +80,18 @@ p, span, li, div { color: inherit; }
     font-weight: 400 !important;
 }
 
-/* ─── Markdown headings — force visibility ─── */
+/* ─── Markdown headings — force visibility (main area only) ─── */
 .stMarkdown h1 { color: var(--gold) !important; font-family: 'Playfair Display', serif; }
 .stMarkdown h2 { color: var(--gold) !important; font-family: 'Playfair Display', serif; }
 .stMarkdown h3 { color: var(--lightblue) !important; }
-.stMarkdown h4 { color: #c8d8f0 !important; font-size: 1rem !important; font-weight: 600 !important; margin-top: 16px !important; }
+/* h4 scoped to main content — NOT sidebar, to avoid overriding widget labels */
+[data-testid="stMain"] .stMarkdown h4,
+section[data-testid="stMain"] h4 {
+    color: #c8d8f0 !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    margin-top: 16px !important;
+}
 .stMarkdown p  { color: var(--txt) !important; line-height: 1.7; }
 .stMarkdown strong { color: var(--gold) !important; }
 .stMarkdown li { color: var(--txt) !important; line-height: 1.8; }
@@ -124,16 +131,35 @@ p, span, li, div { color: inherit; }
     border-radius: 6px;
     font-family: 'DM Mono', monospace;
 }
-.stSlider label, .stNumberInput label, .stSelectbox label {
+
+/* ─── Sidebar widget labels — force lightblue, never gold ─── */
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] span,
+[data-testid="stSidebar"] label p,
+[data-testid="stSidebar"] label span,
+[data-testid="stSidebar"] .stSlider label,
+[data-testid="stSidebar"] .stNumberInput label,
+[data-testid="stSidebar"] .stSelectbox label {
     color: var(--lightblue) !important;
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.04em;
+    font-size: 0.78rem !important;
+    font-weight: 500 !important;
 }
-/* Slider tick/value text */
-[data-testid="stSlider"] [data-testid="stMarkdownContainer"] p {
+/* Slider value bubble (the "7.00" above the thumb) — gold only in sidebar */
+[data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stMarkdownContainer"] p {
     color: var(--gold) !important;
-    font-weight: 600;
+    font-weight: 700 !important;
+    font-size: 0.8rem !important;
+}
+/* Main area slider labels — white-blue, NOT gold */
+[data-testid="stMain"] [data-testid="stWidgetLabel"] p,
+[data-testid="stMain"] [data-testid="stWidgetLabel"] span {
+    color: var(--lightblue) !important;
+    font-weight: 500 !important;
+}
+/* Main area slider value display — gold */
+[data-testid="stMain"] [data-testid="stSlider"] [data-testid="stMarkdownContainer"] p {
+    color: var(--gold) !important;
+    font-weight: 700 !important;
 }
 
 /* ─── Metric Cards ─── */
@@ -379,7 +405,7 @@ with st.sidebar:
     else:
         _inc_fmt = f"${curr_income/1e3:.1f}K" if curr_income < 1e6 else f"${curr_income/1e6:.2f}M"
     st.markdown(
-        f'<div style="font-size:0.72rem;color:#8892b0;margin:-10px 0 6px 2px;">'
+        f'<div style="font-size:0.75rem;color:#a8c4e0;margin:-8px 0 8px 2px;font-style:italic;">'
         f'≡ {_inc_fmt} per year</div>',
         unsafe_allow_html=True
     )
@@ -394,7 +420,7 @@ with st.sidebar:
     else:
         _sav_fmt = f"${curr_savings/1e3:.1f}K" if curr_savings < 1e6 else f"${curr_savings/1e6:.2f}M"
     st.markdown(
-        f'<div style="font-size:0.72rem;color:#8892b0;margin:-10px 0 6px 2px;">'
+        f'<div style="font-size:0.75rem;color:#a8c4e0;margin:-8px 0 8px 2px;font-style:italic;">'
         f'≡ {_sav_fmt} accumulated so far</div>',
         unsafe_allow_html=True
     )
@@ -413,7 +439,7 @@ with st.sidebar:
         f'border-radius:6px;padding:7px 12px;margin-bottom:8px;font-size:0.77rem;color:#ADD8E6;">'
         f'💾 Saves <b style="color:#FFD700;">{_ann_disp}</b>/year'
         f'&nbsp;·&nbsp;<b style="color:#FFD700;">{_mon_disp}</b>/month'
-        f'&nbsp;·&nbsp;<span style="color:#8892b0;">{savings_rate*100:.1f}% of income</span>'
+        f'&nbsp;·&nbsp;<span style="color:#c8dff0;">{savings_rate*100:.1f}% of income</span>'
         f'</div>',
         unsafe_allow_html=True
     )
@@ -432,7 +458,7 @@ with st.sidebar:
         _spc_fmt = f"₹{desired_spending/1e5:.2f} Lakhs/yr" if desired_spending < 1e7 else f"₹{desired_spending/1e7:.2f} Crores/yr"
     else:
         _spc_fmt = f"${desired_spending/1e3:.1f}K/yr"
-    st.markdown(f'<div style="font-size:0.72rem;color:#8892b0;margin:-10px 0 6px 2px;">≡ {_spc_fmt} · Monthly: {curr_sym}{desired_spending/12:,.0f}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="font-size:0.75rem;color:#a8c4e0;margin:-8px 0 8px 2px;font-style:italic;">≡ {_spc_fmt} · Monthly: {curr_sym}{desired_spending/12:,.0f}</div>', unsafe_allow_html=True)
 
     replacement_ratio= st.slider("Income Replacement Ratio (%)", 40.0, 100.0, 75.0, 5.0) / 100
     pension_income   = st.number_input(f"Annual Pension / Social Security ({curr_sym})",
@@ -443,7 +469,7 @@ with st.sidebar:
             _pen_fmt = f"₹{pension_income/1e5:.2f} L/yr · ₹{pension_income/12/1000:.1f}K/mo"
         else:
             _pen_fmt = f"${pension_income/1e3:.1f}K/yr · ${pension_income/12:,.0f}/mo"
-        st.markdown(f'<div style="font-size:0.72rem;color:#8892b0;margin:-10px 0 6px 2px;">≡ {_pen_fmt}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="font-size:0.75rem;color:#a8c4e0;margin:-8px 0 8px 2px;font-style:italic;">≡ {_pen_fmt}</div>', unsafe_allow_html=True)
     other_income     = st.number_input(f"Other Retirement Income ({curr_sym})",
                                        OTH["mn"], OTH["mx"], OTH["df"], OTH["st"],
                                        key="sb_oth")
