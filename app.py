@@ -167,61 +167,32 @@ section[data-testid="stMain"] h4 {
 [data-testid="stMetricValue"] { color: var(--gold) !important; font-family: 'Playfair Display', serif; font-size: 1.6rem; }
 [data-testid="stMetricDelta"] { font-size: 0.78rem; }
 
-/* ─── Tabs — Two-Row Layout ─── */
-/* Both tab bars share base styling */
+/* ─── Sub-tabs (used inside sections like TVM, Case Studies etc.) ─── */
 .stTabs [data-baseweb="tab-list"] {
-    background: rgba(0,0,0,0.35);
-    border-radius: 10px;
-    padding: 4px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 3px;
     gap: 3px;
     flex-wrap: nowrap;
 }
 .stTabs [data-baseweb="tab"] {
     color: #c8d8f0 !important;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.80rem;
+    font-size: 0.78rem;
     font-weight: 500;
-    border-radius: 7px;
-    padding: 7px 14px;
-    letter-spacing: 0.03em;
-    background: rgba(0,30,60,0.4) !important;
+    border-radius: 6px;
+    padding: 6px 12px;
+    background: rgba(0,20,50,0.5) !important;
     white-space: nowrap;
 }
 .stTabs [aria-selected="true"] {
     background: var(--darkblue) !important;
     color: var(--gold) !important;
-    border: 1px solid rgba(255,215,0,0.45) !important;
+    border: 1px solid rgba(255,215,0,0.4) !important;
     font-weight: 600 !important;
 }
-/* Row 1 — Analysis tabs: bottom border connects to row 2 */
-.stTabs:nth-of-type(1) [data-baseweb="tab-list"] {
-    border-radius: 10px 10px 0 0;
-    border-bottom: 2px solid rgba(255,215,0,0.2);
-    margin-bottom: 0 !important;
-    padding-bottom: 4px;
-}
-/* Row 2 — Education tabs: top connects to row 1 */
-.stTabs:nth-of-type(2) [data-baseweb="tab-list"] {
-    border-radius: 0 0 10px 10px;
-    border-top: none;
-    margin-top: 0 !important;
-    padding-top: 4px;
-    background: rgba(0,0,0,0.25);
-}
-/* Row 2 inactive tab — slightly dimmer to distinguish from row 1 */
-.stTabs:nth-of-type(2) [data-baseweb="tab"] {
-    background: rgba(0,20,50,0.5) !important;
-    font-size: 0.78rem;
-}
-/* Collapse the gap between the two tab containers */
-.stTabs:nth-of-type(1) {
-    margin-bottom: -12px !important;
-}
-/* Tab content panels — add top border for clear separation */
 .stTabs [data-baseweb="tab-panel"] {
-    padding-top: 20px !important;
-    border-top: 1px solid rgba(255,215,0,0.1);
-    margin-top: 4px;
+    padding-top: 16px !important;
 }
 
 /* ─── Expanders ─── */
@@ -711,33 +682,178 @@ c6.metric("MC Success Rate",  f"{success_rate:.1f}%",
 st.markdown("---")
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ─── MAIN TABS — ROW 1: Analysis  |  ROW 2: Education ────────────────────────
+# ─── CUSTOM TWO-ROW NAVIGATION BAR ───────────────────────────────────────────
 # ═══════════════════════════════════════════════════════════════════════════════
-st.markdown(
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">'
-    '<span style="font-size:0.68rem;color:#FFD700;font-weight:700;letter-spacing:0.12em;'
-    'text-transform:uppercase;background:rgba(0,51,102,0.6);padding:3px 10px;'
-    'border-radius:4px;border:1px solid rgba(255,215,0,0.3);">📐 Analysis</span>'
-    '</div>',
-    unsafe_allow_html=True
-)
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📊 Dashboard", "📈 Savings Growth", "🏦 Retirement Needs",
-    "💸 Withdrawal Plan", "🔬 Sensitivity"
-])
 
+# All 10 sections defined — used for navigation and content rendering
+NAV_SECTIONS = [
+    # (key, emoji, label, group)
+    ("dashboard",      "📊", "Dashboard",           "analysis"),
+    ("savings",        "📈", "Savings Growth",       "analysis"),
+    ("retirement",     "🏦", "Retirement Needs",     "analysis"),
+    ("withdrawal",     "💸", "Withdrawal Plan",      "analysis"),
+    ("sensitivity",    "🔬", "Sensitivity",          "analysis"),
+    ("montecarlo",     "🎲", "Monte Carlo",          "education"),
+    ("tvm",            "📚", "TVM Basics",           "education"),
+    ("casestudies",    "🎓", "Case Studies",         "education"),
+    ("behavioural",    "⚖️", "Behavioural Finance",  "education"),
+    ("glossary",       "📖", "Glossary & Formulas",  "education"),
+]
+
+if "active_section" not in st.session_state:
+    st.session_state["active_section"] = "dashboard"
+
+def _nav_click(key):
+    st.session_state["active_section"] = key
+
+active = st.session_state["active_section"]
+
+# ── Instruction banner ────────────────────────────────────────────────────────
+st.markdown("""
+<div style="background:linear-gradient(90deg,rgba(0,51,102,0.8),rgba(0,77,128,0.6));
+    border:1px solid rgba(255,215,0,0.35);border-radius:10px;
+    padding:10px 18px;margin-bottom:10px;
+    display:flex;align-items:center;gap:12px;">
+  <span style="font-size:1.3rem;">👆</span>
+  <div>
+    <span style="color:#FFD700;font-weight:700;font-size:0.85rem;">How to navigate:</span>
+    <span style="color:#c8d8f0;font-size:0.82rem;">
+      &nbsp;Click any button below to open that section.
+      &nbsp;<b style="color:#FFD700;">Row 1</b> = Analysis tools &nbsp;·&nbsp;
+      <b style="color:#ADD8E6;">Row 2</b> = Education &amp; Learning
+    </span>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Row 1: Analysis ───────────────────────────────────────────────────────────
+st.markdown("""
+<div style="font-size:0.68rem;color:#FFD700;font-weight:700;letter-spacing:0.14em;
+    text-transform:uppercase;margin-bottom:5px;padding-left:2px;">
+  📐 &nbsp;Row 1 — Analysis Tools
+</div>""", unsafe_allow_html=True)
+
+row1_cols = st.columns(5)
+for col, (key, emoji, label, grp) in zip(row1_cols, [s for s in NAV_SECTIONS if s[3]=="analysis"]):
+    is_active = (active == key)
+    with col:
+        if is_active:
+            st.markdown(
+                f'<div style="background:rgba(0,51,102,0.95);border:2px solid #FFD700;'
+                f'border-radius:9px;padding:9px 4px;text-align:center;cursor:pointer;'
+                f'box-shadow:0 0 12px rgba(255,215,0,0.4);">'
+                f'<div style="font-size:1.1rem;">{emoji}</div>'
+                f'<div style="color:#FFD700;font-size:0.72rem;font-weight:700;'
+                f'line-height:1.3;margin-top:2px;">{label}</div>'
+                f'<div style="width:28px;height:3px;background:#FFD700;border-radius:2px;'
+                f'margin:5px auto 0;"></div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            st.button(
+                f"{emoji}\n{label}",
+                key=f"nav_{key}",
+                on_click=_nav_click,
+                args=(key,),
+                use_container_width=True,
+            )
+
+# ── Row 2: Education ─────────────────────────────────────────────────────────
+st.markdown("""
+<div style="font-size:0.68rem;color:#ADD8E6;font-weight:700;letter-spacing:0.14em;
+    text-transform:uppercase;margin:10px 0 5px 2px;">
+  📚 &nbsp;Row 2 — Education &amp; Learning Tools
+</div>""", unsafe_allow_html=True)
+
+row2_cols = st.columns(5)
+for col, (key, emoji, label, grp) in zip(row2_cols, [s for s in NAV_SECTIONS if s[3]=="education"]):
+    is_active = (active == key)
+    with col:
+        if is_active:
+            st.markdown(
+                f'<div style="background:rgba(0,30,60,0.95);border:2px solid #ADD8E6;'
+                f'border-radius:9px;padding:9px 4px;text-align:center;cursor:pointer;'
+                f'box-shadow:0 0 12px rgba(173,216,230,0.4);">'
+                f'<div style="font-size:1.1rem;">{emoji}</div>'
+                f'<div style="color:#ADD8E6;font-size:0.72rem;font-weight:700;'
+                f'line-height:1.3;margin-top:2px;">{label}</div>'
+                f'<div style="width:28px;height:3px;background:#ADD8E6;border-radius:2px;'
+                f'margin:5px auto 0;"></div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            st.button(
+                f"{emoji}\n{label}",
+                key=f"nav_{key}",
+                on_click=_nav_click,
+                args=(key,),
+                use_container_width=True,
+            )
+
+# ── Active section indicator ─────────────────────────────────────────────────
+_sec = next(s for s in NAV_SECTIONS if s[0] == active)
+_row_color = "#FFD700" if _sec[3] == "analysis" else "#ADD8E6"
+_row_label = "Analysis" if _sec[3] == "analysis" else "Education"
 st.markdown(
-    '<div style="display:flex;align-items:center;gap:10px;margin:8px 0 4px 0;">'
-    '<span style="font-size:0.68rem;color:#ADD8E6;font-weight:700;letter-spacing:0.12em;'
-    'text-transform:uppercase;background:rgba(0,30,60,0.6);padding:3px 10px;'
-    'border-radius:4px;border:1px solid rgba(173,216,230,0.3);">📚 Education & Tools</span>'
-    '</div>',
+    f'<div style="border-top:2px solid {_row_color};margin:8px 0 16px 0;padding-top:10px;">'
+    f'<span style="background:{_row_color};color:#001a33;font-size:0.72rem;font-weight:800;'
+    f'padding:3px 12px;border-radius:0 0 8px 8px;letter-spacing:0.08em;">'
+    f'▼ &nbsp;{_sec[1]} {_sec[2].upper()}'
+    f'</span></div>',
     unsafe_allow_html=True
 )
-tab6, tab7, tab8, tab9, tab10 = st.tabs([
-    "🎲 Monte Carlo", "📚 TVM Basics",
-    "🎓 Case Studies", "⚖️ Behavioural Finance", "📖 Glossary & Formulas"
-])
+
+# ── CSS: Style the nav buttons ────────────────────────────────────────────────
+st.markdown("""
+<style>
+/* Nav buttons — prominent, card-style */
+[data-testid="stMain"] .stButton > button {
+    background: rgba(0,30,60,0.65) !important;
+    border: 1px solid rgba(173,216,230,0.35) !important;
+    border-radius: 9px !important;
+    color: #c8d8f0 !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    padding: 8px 4px !important;
+    white-space: pre-line !important;
+    line-height: 1.4 !important;
+    min-height: 56px !important;
+    transition: all 0.15s ease !important;
+    width: 100% !important;
+}
+[data-testid="stMain"] .stButton > button:hover {
+    background: rgba(0,51,102,0.85) !important;
+    border-color: rgba(255,215,0,0.6) !important;
+    color: #FFD700 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 16px rgba(255,215,0,0.2) !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ── Fake tab variables for compatibility with all existing content blocks ─────
+# We use if/elif blocks — these are just placeholders so existing `with tab1:` etc still work
+import contextlib
+
+@contextlib.contextmanager
+def _section(name):
+    if active == name:
+        yield True
+    else:
+        yield False
+
+tab1  = _section("dashboard")
+tab2  = _section("savings")
+tab3  = _section("retirement")
+tab4  = _section("withdrawal")
+tab5  = _section("sensitivity")
+tab6  = _section("montecarlo")
+tab7  = _section("tvm")
+tab8  = _section("casestudies")
+tab9  = _section("behavioural")
+tab10 = _section("glossary")
 
 PLOT_BG = "rgba(0,0,0,0)"
 PAPER_BG= "rgba(17,34,64,0.0)"
