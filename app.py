@@ -27,7 +27,7 @@ st.markdown("""
     --gold:     #FFD700;
     --lightblue:#ADD8E6;
     --txt:      #e6f1ff;
-    --muted:    #8892b0;
+    --muted:    #a8b2d8;
     --grn:      #28a745;
     --red:      #dc3545;
     --bg1:      #1a2332;
@@ -61,6 +61,57 @@ html, body, [class*="css"] {
     padding-bottom: 6px;
     margin-top: 20px;
 }
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] label {
+    color: var(--txt) !important;
+}
+
+/* ─── ALL text globally — force bright on dark bg ─── */
+p, span, li, div { color: inherit; }
+
+/* ─── Captions — override Streamlit's near-invisible default ─── */
+[data-testid="stCaptionContainer"] p,
+.stCaption, .stCaption p,
+[class*="caption"] {
+    color: var(--lightblue) !important;
+    font-size: 0.82rem !important;
+    opacity: 1 !important;
+    font-weight: 400 !important;
+}
+
+/* ─── Markdown headings — force visibility ─── */
+.stMarkdown h1 { color: var(--gold) !important; font-family: 'Playfair Display', serif; }
+.stMarkdown h2 { color: var(--gold) !important; font-family: 'Playfair Display', serif; }
+.stMarkdown h3 { color: var(--lightblue) !important; }
+.stMarkdown h4 { color: #c8d8f0 !important; font-size: 1rem !important; font-weight: 600 !important; margin-top: 16px !important; }
+.stMarkdown p  { color: var(--txt) !important; line-height: 1.7; }
+.stMarkdown strong { color: var(--gold) !important; }
+.stMarkdown li { color: var(--txt) !important; line-height: 1.8; }
+
+/* ─── Info / Warning / Success boxes ─── */
+[data-testid="stInfo"] {
+    background: rgba(0,77,128,0.5) !important;
+    border-left: 4px solid var(--lightblue) !important;
+    border-radius: 8px !important;
+    color: var(--txt) !important;
+}
+[data-testid="stInfo"] p,
+[data-testid="stInfo"] span { color: var(--txt) !important; }
+
+[data-testid="stWarning"] {
+    background: rgba(255,193,7,0.15) !important;
+    border-left: 4px solid #FFC107 !important;
+    border-radius: 8px !important;
+}
+[data-testid="stWarning"] p { color: #ffe082 !important; }
+
+[data-testid="stSuccess"] {
+    background: rgba(40,167,69,0.15) !important;
+    border-left: 4px solid var(--grn) !important;
+    border-radius: 8px !important;
+}
+[data-testid="stSuccess"] p { color: #a8e6b8 !important; }
 
 /* ─── Sliders & Inputs ─── */
 [data-testid="stSlider"] > div > div > div {
@@ -79,6 +130,11 @@ html, body, [class*="css"] {
     font-weight: 500;
     letter-spacing: 0.04em;
 }
+/* Slider tick/value text */
+[data-testid="stSlider"] [data-testid="stMarkdownContainer"] p {
+    color: var(--gold) !important;
+    font-weight: 600;
+}
 
 /* ─── Metric Cards ─── */
 [data-testid="stMetric"] {
@@ -94,47 +150,79 @@ html, body, [class*="css"] {
 
 /* ─── Tabs ─── */
 .stTabs [data-baseweb="tab-list"] {
-    background: rgba(0,0,0,0.3);
+    background: rgba(0,0,0,0.4);
     border-radius: 10px;
     padding: 4px;
     gap: 4px;
 }
 .stTabs [data-baseweb="tab"] {
-    color: var(--muted) !important;
+    color: #c8d8f0 !important;
     font-family: 'DM Sans', sans-serif;
     font-size: 0.82rem;
     font-weight: 500;
     border-radius: 8px;
     padding: 8px 18px;
     letter-spacing: 0.04em;
+    background: rgba(0,30,60,0.4) !important;
 }
 .stTabs [aria-selected="true"] {
     background: var(--darkblue) !important;
     color: var(--gold) !important;
-    border: 1px solid rgba(255,215,0,0.35) !important;
+    border: 1px solid rgba(255,215,0,0.45) !important;
+    font-weight: 600 !important;
 }
 
 /* ─── Expanders ─── */
-.streamlit-expanderHeader {
-    background: rgba(0,51,102,0.4) !important;
-    border: 1px solid rgba(173,216,230,0.2) !important;
+.streamlit-expanderHeader,
+[data-testid="stExpander"] summary,
+[data-testid="stExpanderToggleIcon"],
+details > summary {
+    background: rgba(0,51,102,0.55) !important;
+    border: 1px solid rgba(173,216,230,0.3) !important;
     border-radius: 8px !important;
-    color: var(--lightblue) !important;
-    font-weight: 500;
+    color: #e0eeff !important;
+    font-weight: 600 !important;
+    font-size: 0.88rem !important;
+    padding: 10px 14px !important;
+}
+.streamlit-expanderHeader:hover,
+[data-testid="stExpander"] summary:hover {
+    background: rgba(0,77,128,0.7) !important;
+    border-color: rgba(255,215,0,0.4) !important;
+}
+/* Expander content area */
+[data-testid="stExpander"] > div[data-testid="stExpanderDetails"] {
+    background: rgba(10,22,40,0.6) !important;
+    border: 1px solid rgba(173,216,230,0.15) !important;
+    border-top: none !important;
+    border-radius: 0 0 8px 8px !important;
+    padding: 12px !important;
 }
 
 /* ─── Dividers ─── */
 hr { border-color: rgba(255,215,0,0.15) !important; }
 
-/* ─── DataFrames ─── */
+/* ─── DataFrames / Tables ─── */
 .stDataFrame { border: 1px solid rgba(255,215,0,0.15) !important; border-radius: 8px; }
-.stDataFrame th { background: var(--darkblue) !important; color: var(--gold) !important; }
-.stDataFrame td { background: rgba(17,34,64,0.7) !important; color: var(--txt) !important; }
+.stDataFrame th { background: var(--darkblue) !important; color: var(--gold) !important; font-weight: 600 !important; }
+.stDataFrame td { background: rgba(17,34,64,0.8) !important; color: var(--txt) !important; }
+/* Markdown tables */
+.stMarkdown table { border-collapse: collapse; width: 100%; }
+.stMarkdown table th { background: rgba(0,51,102,0.8) !important; color: var(--gold) !important; padding: 8px 12px; border: 1px solid rgba(255,215,0,0.2); }
+.stMarkdown table td { background: rgba(17,34,64,0.6) !important; color: var(--txt) !important; padding: 7px 12px; border: 1px solid rgba(255,255,255,0.08); }
+.stMarkdown table tr:hover td { background: rgba(0,51,102,0.5) !important; }
 
-/* ─── Success / Warning / Error ─── */
+/* ─── Alerts ─── */
 .stAlert { border-radius: 10px; border-left: 4px solid; }
 
-/* hide hamburger & footer */
+/* ─── Selectbox dropdown text ─── */
+[data-testid="stSelectbox"] span,
+[data-testid="stSelectbox"] div { color: var(--txt) !important; }
+
+/* ─── Number input +/- buttons ─── */
+.stNumberInput button { color: var(--gold) !important; background: rgba(0,51,102,0.5) !important; border-color: rgba(255,215,0,0.3) !important; }
+
+/* ─── hide hamburger & Streamlit footer ─── */
 #MainMenu, footer { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
@@ -814,7 +902,7 @@ with tab5:
     with col_s1:
         # Table 1: Savings Rate vs Return → Projected Corpus
         st.markdown("#### Table 1: Projected Corpus")
-        st.caption("Savings Rate (rows) × Pre-Retirement Return (columns)")
+        st.markdown('<p style="color:#ADD8E6;font-size:0.8rem;margin:-4px 0 8px 0;">📋 Savings Rate (rows) × Pre-Retirement Return (columns)</p>', unsafe_allow_html=True)
         sav_rates = np.arange(0.05, 0.31, 0.05)
         ret_rates = np.arange(0.04, 0.15, 0.02)
         tbl1 = pd.DataFrame(index=[f"{r*100:.0f}%" for r in sav_rates],
@@ -830,7 +918,7 @@ with tab5:
     with col_s2:
         # Table 2: Retire Age vs Inflation → Required Corpus
         st.markdown("#### Table 2: Required Corpus")
-        st.caption("Retirement Age (rows) × Inflation Rate (columns)")
+        st.markdown('<p style="color:#ADD8E6;font-size:0.8rem;margin:-4px 0 8px 0;">📋 Retirement Age (rows) × Inflation Rate (columns)</p>', unsafe_allow_html=True)
         ret_ages  = range(max(current_age+5, 50), min(75, life_expectancy-5), 3)
         infl_rates= np.arange(0.02, 0.10, 0.01)
         tbl2 = pd.DataFrame(index=[f"Age {a}" for a in ret_ages],
@@ -939,7 +1027,7 @@ with tab6:
 # ───────────────────────────────────────
 with tab7:
     st.markdown("### 📚 Time Value of Money — Interactive Learning Module")
-    st.caption("Adjust inputs to see how TVM formulas power retirement planning")
+    st.markdown('<p style="color:#ADD8E6;font-size:0.83rem;margin:-4px 0 12px 0;padding:6px 14px;background:rgba(0,51,102,0.4);border-left:3px solid #ADD8E6;border-radius:0 6px 6px 0;">🎛️ Adjust inputs to see how TVM formulas power retirement planning</p>', unsafe_allow_html=True)
 
     tvm1, tvm2, tvm3, tvm4, tvm5 = st.tabs(["FV — Future Value","PV — Present Value","PMT — Payment","NPER — Periods","RATE"])
 
@@ -1099,7 +1187,7 @@ with tab7:
 # ───────────────────────────────────────
 with tab8:
     st.markdown("### 🎓 Real-World Case Studies in Retirement Planning")
-    st.caption("Interactive case studies drawn from Indian and global financial planning practice. Work through each scenario, change the assumptions, and see the outcomes.")
+    st.markdown('<p style="color:#ADD8E6;font-size:0.83rem;margin:-4px 0 14px 0;padding:8px 14px;background:rgba(0,51,102,0.35);border-left:3px solid #FFD700;border-radius:0 8px 8px 0;line-height:1.6;">📚 Interactive case studies drawn from Indian and global financial planning practice. Work through each scenario, change the assumptions, and see the outcomes.</p>', unsafe_allow_html=True)
 
     cs_tabs = st.tabs([
         "📘 Case 1 · The Late Starter",
@@ -1112,31 +1200,41 @@ with tab8:
     # ── Shared case-study helpers ──────────────────────────────────────────────
     def case_card(title, subtitle, color="#003366"):
         st.markdown(f"""
-        <div style="background:linear-gradient(135deg,{color},rgba(0,51,102,0.6));
-            border:1px solid rgba(255,215,0,0.3);border-radius:14px;padding:20px 24px;margin-bottom:18px;">
-        <div style="font-family:'Playfair Display',serif;font-size:1.25rem;color:#FFD700;margin-bottom:4px;">{title}</div>
-        <div style="font-size:0.8rem;color:#ADD8E6;line-height:1.6;">{subtitle}</div>
+        <div style="background:linear-gradient(135deg,{color},rgba(0,51,102,0.75));
+            border:1px solid rgba(255,215,0,0.4);border-radius:14px;padding:22px 26px;margin-bottom:18px;
+            box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+        <div style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#FFD700;
+            margin-bottom:6px;font-weight:700;">{title}</div>
+        <div style="font-size:0.83rem;color:#c8dff0;line-height:1.7;font-weight:400;">{subtitle}</div>
         </div>""", unsafe_allow_html=True)
 
     def insight_box(text, icon="💡"):
         st.markdown(f"""
-        <div style="background:rgba(255,215,0,0.07);border-left:4px solid #FFD700;
-            border-radius:0 10px 10px 0;padding:12px 16px;margin:10px 0;font-size:0.82rem;color:#e6f1ff;line-height:1.7;">
-        {icon} {text}
+        <div style="background:rgba(255,215,0,0.12);border-left:4px solid #FFD700;
+            border-radius:0 10px 10px 0;padding:14px 18px;margin:12px 0;
+            font-size:0.83rem;color:#e6f1ff;line-height:1.8;
+            box-shadow:0 2px 12px rgba(0,0,0,0.2);">
+        <span style="font-size:1rem;">{icon}</span> {text}
         </div>""", unsafe_allow_html=True)
 
     def lesson_box(text):
         st.markdown(f"""
-        <div style="background:rgba(40,167,69,0.12);border-left:4px solid #28a745;
-            border-radius:0 10px 10px 0;padding:12px 16px;margin:10px 0;font-size:0.82rem;color:#e6f1ff;line-height:1.7;">
-        🎯 <b style="color:#28a745;">Learning Outcome:</b> {text}
+        <div style="background:rgba(40,167,69,0.18);border:1px solid rgba(40,167,69,0.4);
+            border-left:5px solid #28a745;border-radius:0 10px 10px 0;
+            padding:14px 18px;margin:12px 0;font-size:0.83rem;color:#e6f1ff;line-height:1.8;
+            box-shadow:0 2px 12px rgba(0,0,0,0.2);">
+        🎯 <b style="color:#5dd879;font-size:0.85rem;letter-spacing:0.04em;">LEARNING OUTCOME:</b><br>
+        <span style="color:#d4f4dd;">{text}</span>
         </div>""", unsafe_allow_html=True)
 
     def warning_box(text):
         st.markdown(f"""
-        <div style="background:rgba(220,53,69,0.12);border-left:4px solid #dc3545;
-            border-radius:0 10px 10px 0;padding:12px 16px;margin:10px 0;font-size:0.82rem;color:#e6f1ff;line-height:1.7;">
-        ⚠️ {text}
+        <div style="background:rgba(220,53,69,0.18);border:1px solid rgba(220,53,69,0.4);
+            border-left:5px solid #dc3545;border-radius:0 10px 10px 0;
+            padding:14px 18px;margin:12px 0;font-size:0.83rem;color:#e6f1ff;line-height:1.8;
+            box-shadow:0 2px 12px rgba(0,0,0,0.2);">
+        ⚠️ <b style="color:#f18a94;font-size:0.85rem;letter-spacing:0.04em;">CAUTION:</b><br>
+        <span style="color:#ffd4d8;">{text}</span>
         </div>""", unsafe_allow_html=True)
 
     # ── CASE 1 · THE LATE STARTER ─────────────────────────────────────────────
@@ -1626,7 +1724,7 @@ with tab8:
 # ───────────────────────────────────────
 with tab9:
     st.markdown("### ⚖️ Behavioural Finance & Retirement Decisions")
-    st.caption("How cognitive biases derail even the best retirement plans — and what to do about it.")
+    st.markdown('<p style="color:#ADD8E6;font-size:0.83rem;margin:-4px 0 14px 0;padding:7px 14px;background:rgba(0,51,102,0.35);border-left:3px solid #dc3545;border-radius:0 8px 8px 0;">🧠 How cognitive biases derail even the best retirement plans — and what to do about it.</p>', unsafe_allow_html=True)
 
     bf_tabs = st.tabs([
         "🧠 Key Biases", "📉 The Cost of Panic Selling", "⏰ Hyperbolic Discounting", "🎯 Debiasing Strategies"
@@ -1685,7 +1783,12 @@ with tab9:
 
     with bf_tabs[1]:
         st.markdown("#### 📉 The Catastrophic Cost of Panic Selling")
-        st.markdown("Simulates what happens when an investor exits the market during corrections vs. staying invested.")
+        st.markdown(
+            '<p style="color:#c8d8f0;font-size:0.85rem;line-height:1.7;margin-bottom:14px;">'
+            'Simulates what happens when an investor exits the market during corrections vs. staying invested. '
+            'Missing even a handful of the best trading days dramatically destroys long-term wealth.</p>',
+            unsafe_allow_html=True
+        )
 
         col1, col2 = st.columns([1, 2])
         with col1:
@@ -1754,10 +1857,14 @@ with tab9:
 
     with bf_tabs[2]:
         st.markdown("#### ⏰ Hyperbolic Discounting — Why We Procrastinate on Saving")
-        st.markdown("""
-        Hyperbolic discounting means we value today far more than the future — and tomorrow becomes 
-        "today" when it arrives, so we keep delaying. This creates the **procrastination trap** in retirement planning.
-        """)
+        st.markdown(
+            '<p style="color:#c8d8f0;font-size:0.85rem;line-height:1.8;margin-bottom:14px;">'
+            'Hyperbolic discounting means we value today far more than the future — and tomorrow becomes '
+            '"today" when it arrives, so we keep delaying. This creates the '
+            '<b style="color:#FFD700;">procrastination trap</b> in retirement planning.'
+            '</p>',
+            unsafe_allow_html=True
+        )
 
         delay_years = st.slider("Years of delay before starting SIP", 0, 20, 5, 1)
         monthly_sip = st.number_input(f"Monthly SIP Amount ({curr_sym})",
@@ -1829,11 +1936,14 @@ with tab9:
         }
         for strategy, points in strategies.items():
             with st.expander(strategy):
-                for pt in points:
+                for i, pt in enumerate(points):
                     st.markdown(f"""
-                    <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);
-                        font-size:0.82rem;color:#e6f1ff;">
-                    ✅ {pt}</div>""", unsafe_allow_html=True)
+                    <div style="padding:10px 14px;margin:4px 0;
+                        background:rgba(0,51,102,0.5);
+                        border-radius:8px;border-left:3px solid rgba(255,215,0,0.5);
+                        font-size:0.84rem;color:#e6f1ff;line-height:1.6;">
+                    <span style="color:#FFD700;font-weight:700;margin-right:8px;">✅</span>{pt}
+                    </div>""", unsafe_allow_html=True)
 
         lesson_box("""
         The best retirement plan is one that <b>removes human decision-making from the equation</b>. 
@@ -1846,7 +1956,7 @@ with tab9:
 # ───────────────────────────────────────
 with tab10:
     st.markdown("### 📖 Complete Glossary, Formulas & Quick Reference")
-    st.caption("A comprehensive reference for all concepts used in this retirement planning suite.")
+    st.markdown('<p style="color:#ADD8E6;font-size:0.83rem;margin:-4px 0 14px 0;padding:7px 14px;background:rgba(0,51,102,0.35);border-left:3px solid #ADD8E6;border-radius:0 8px 8px 0;">📖 A comprehensive reference for all concepts used in this retirement planning suite.</p>', unsafe_allow_html=True)
 
     gl_tabs = st.tabs(["📐 TVM Formulas", "📑 Retirement Concepts", "🏛️ Indian Instruments", "🌍 Global Benchmarks"])
 
