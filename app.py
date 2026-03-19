@@ -310,26 +310,6 @@ div[class*="option"]:hover {
     font-size: 0.88rem !important;
 }
 
-/* ─── Sidebar nav buttons ─── */
-[data-testid="stSidebar"] .stButton > button {
-    background: rgba(0,30,60,0.6) !important;
-    border: 1px solid rgba(173,216,230,0.25) !important;
-    border-radius: 8px !important;
-    color: #c8d8f0 !important;
-    font-size: 0.78rem !important;
-    font-weight: 500 !important;
-    padding: 7px 10px !important;
-    text-align: left !important;
-    transition: all 0.15s ease !important;
-    width: 100% !important;
-    margin-bottom: 3px !important;
-}
-[data-testid="stSidebar"] .stButton > button:hover {
-    background: rgba(0,51,102,0.85) !important;
-    border-color: rgba(255,215,0,0.5) !important;
-    color: #FFD700 !important;
-}
-
 /* ─── hide hamburger & Streamlit footer ─── */
 #MainMenu, footer { visibility: hidden; }
 </style>
@@ -582,47 +562,6 @@ with st.sidebar:
     return_std   = st.slider("Return Volatility (Std Dev %)", 1.0, 25.0, 8.0 if is_inr else 12.0, 1.0) / 100
     inflation_std= st.slider("Inflation Volatility (Std Dev %)", 0.5, 5.0, 1.5, 0.5) / 100
 
-    # ── Sidebar Navigation ───────────────────────────────────────────────────
-    st.markdown("---")
-    st.markdown("""
-    <div style="font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:900;
-        color:#FFD700;margin-bottom:8px;letter-spacing:0.02em;">
-        🗺️ Navigate to Section
-    </div>
-    <div style="font-size:0.72rem;color:#a8c4e0;margin-bottom:10px;line-height:1.5;">
-        Click a button — page jumps to that section instantly.
-    </div>""", unsafe_allow_html=True)
-
-    _active_sb = st.session_state["active_section"]
-
-    st.markdown('<div style="color:#FFD700;font-size:0.72rem;font-weight:700;'
-                'letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">'
-                '📐 Analysis Tools</div>', unsafe_allow_html=True)
-    for _key, _emo, _lbl, _grp in [s for s in NAV_SECTIONS if s[3] == "analysis"]:
-        _is_active = (_active_sb == _key)
-        _btn_style = ("border:2px solid #FFD700;background:rgba(0,51,102,0.9);"
-                      "color:#FFD700;font-weight:700;") if _is_active else ""
-        st.button(
-            f"{_emo} {_lbl}{'  ◀' if _is_active else ''}",
-            key=f"sb_nav_{_key}",
-            on_click=_nav_click,
-            args=(_key,),
-            use_container_width=True,
-        )
-
-    st.markdown('<div style="color:#ADD8E6;font-size:0.72rem;font-weight:700;'
-                'letter-spacing:0.1em;text-transform:uppercase;margin:10px 0 4px 0;">'
-                '📚 Education & Learning</div>', unsafe_allow_html=True)
-    for _key, _emo, _lbl, _grp in [s for s in NAV_SECTIONS if s[3] == "education"]:
-        _is_active = (_active_sb == _key)
-        st.button(
-            f"{_emo} {_lbl}{'  ◀' if _is_active else ''}",
-            key=f"sb_nav_{_key}",
-            on_click=_nav_click,
-            args=(_key,),
-            use_container_width=True,
-        )
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # ─── CORE CALCULATIONS ────────────────────────────────────────────────────────
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -765,29 +704,102 @@ c6.metric("MC Success Rate",  f"{success_rate:.1f}%",
 st.markdown("---")
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ─── CONTENT AREA — active section set from sidebar nav ──────────────────────
+# ─── TWO-ROW NAVIGATION ───────────────────────────────────────────────────────
 # ═══════════════════════════════════════════════════════════════════════════════
 active = st.session_state["active_section"]
-_sec      = next(s for s in NAV_SECTIONS if s[0] == active)
-_row_color = "#FFD700" if _sec[3] == "analysis" else "#ADD8E6"
 
-# Active section banner — sits at top of content, always visible
+# ── Row 1: Analysis Tools ─────────────────────────────────────────────────────
+st.markdown("""
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+  <span style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:900;
+    color:#FFD700;text-shadow:0 0 20px rgba(255,215,0,0.4);">
+    📐 Analysis Tools
+  </span>
+  <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(255,215,0,0.5),transparent);"></div>
+</div>""", unsafe_allow_html=True)
+
+r1 = st.columns(5)
+for col, (key, emoji, label, _) in zip(r1, [s for s in NAV_SECTIONS if s[3]=="analysis"]):
+    with col:
+        if active == key:
+            st.markdown(
+                f'<div style="background:rgba(0,51,102,0.95);border:2px solid #FFD700;'
+                f'border-radius:9px;padding:10px 4px;text-align:center;'
+                f'box-shadow:0 0 14px rgba(255,215,0,0.35);">'
+                f'<div style="font-size:1.15rem;">{emoji}</div>'
+                f'<div style="color:#FFD700;font-size:0.73rem;font-weight:700;margin-top:3px;">{label}</div>'
+                f'<div style="width:24px;height:3px;background:#FFD700;border-radius:2px;margin:5px auto 0;"></div>'
+                f'</div>', unsafe_allow_html=True)
+        else:
+            st.button(f"{emoji}\n{label}", key=f"nav_{key}",
+                      on_click=_nav_click, args=(key,), use_container_width=True)
+
+# ── Row 2: Education & Learning ───────────────────────────────────────────────
+st.markdown("""
+<div style="display:flex;align-items:center;gap:12px;margin:12px 0 8px 0;">
+  <span style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:900;
+    color:#ADD8E6;text-shadow:0 0 20px rgba(173,216,230,0.35);">
+    📚 Education &amp; Learning
+  </span>
+  <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(173,216,230,0.4),transparent);"></div>
+</div>""", unsafe_allow_html=True)
+
+r2 = st.columns(5)
+for col, (key, emoji, label, _) in zip(r2, [s for s in NAV_SECTIONS if s[3]=="education"]):
+    with col:
+        if active == key:
+            st.markdown(
+                f'<div style="background:rgba(0,30,60,0.95);border:2px solid #ADD8E6;'
+                f'border-radius:9px;padding:10px 4px;text-align:center;'
+                f'box-shadow:0 0 14px rgba(173,216,230,0.3);">'
+                f'<div style="font-size:1.15rem;">{emoji}</div>'
+                f'<div style="color:#ADD8E6;font-size:0.73rem;font-weight:700;margin-top:3px;">{label}</div>'
+                f'<div style="width:24px;height:3px;background:#ADD8E6;border-radius:2px;margin:5px auto 0;"></div>'
+                f'</div>', unsafe_allow_html=True)
+        else:
+            st.button(f"{emoji}\n{label}", key=f"nav_{key}",
+                      on_click=_nav_click, args=(key,), use_container_width=True)
+
+# ── Active section indicator bar ─────────────────────────────────────────────
+_sec = next(s for s in NAV_SECTIONS if s[0] == active)
+_rc  = "#FFD700" if _sec[3] == "analysis" else "#ADD8E6"
 st.markdown(
-    f'<div style="border-left:4px solid {_row_color};'
-    f'background:rgba(0,20,50,0.5);border-radius:0 10px 10px 0;'
-    f'padding:10px 20px;margin-bottom:18px;'
-    f'display:flex;align-items:center;gap:12px;">'
-    f'<span style="font-size:1.5rem;">{_sec[1]}</span>'
-    f'<div>'
-    f'<div style="font-family:\'Playfair Display\',serif;font-size:1.1rem;'
-    f'font-weight:700;color:{_row_color};">{_sec[2]}</div>'
-    f'<div style="font-size:0.72rem;color:#a8c4e0;">'
-    f'{"📐 Analysis Tools" if _sec[3]=="analysis" else "📚 Education & Learning"}'
-    f' &nbsp;·&nbsp; Use sidebar to switch sections</div>'
-    f'</div></div>',
+    f'<div style="border-top:2px solid {_rc};margin:10px 0 18px 0;padding-top:8px;">'
+    f'<span style="background:{_rc};color:#001a33;font-size:0.72rem;font-weight:800;'
+    f'padding:3px 14px;border-radius:0 0 8px 8px;letter-spacing:0.08em;">'
+    f'▼ &nbsp;{_sec[1]} {_sec[2].upper()}'
+    f'</span></div>',
     unsafe_allow_html=True
 )
 
+# ── Button CSS ────────────────────────────────────────────────────────────────
+st.markdown("""
+<style>
+[data-testid="stMain"] .stButton > button {
+    background: rgba(0,30,60,0.65) !important;
+    border: 1px solid rgba(173,216,230,0.3) !important;
+    border-radius: 9px !important;
+    color: #c8d8f0 !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    padding: 8px 4px !important;
+    white-space: pre-line !important;
+    line-height: 1.4 !important;
+    min-height: 58px !important;
+    transition: all 0.15s ease !important;
+    width: 100% !important;
+}
+[data-testid="stMain"] .stButton > button:hover {
+    background: rgba(0,51,102,0.9) !important;
+    border-color: rgba(255,215,0,0.6) !important;
+    color: #FFD700 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 16px rgba(255,215,0,0.2) !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ── Section context managers (compatible with all existing `with tab1:` blocks) ─
 import contextlib
 
 @contextlib.contextmanager
